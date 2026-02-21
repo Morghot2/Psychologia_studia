@@ -1,0 +1,2139 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Psychologia w Biznesie - Deep Learning Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* --- CSS START --- */
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap");
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f3f4f6;
+        color: #111827;
+      }
+
+      .btn-action {
+        transition: all 0.2s ease;
+      }
+      .btn-action:active {
+        transform: scale(0.98);
+      }
+
+      .correct-answer {
+        background-color: #d1fae5 !important;
+        border-color: #10b981 !important;
+        color: #064e3b !important;
+      }
+
+      .wrong-answer {
+        background-color: #fee2e2 !important;
+        border-color: #ef4444 !important;
+        color: #7f1d1d !important;
+      }
+
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      .slide-in {
+        animation: slideIn 0.3s ease-out forwards;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      /* --- CSS END --- */
+    </style>
+  </head>
+  <body class="h-screen flex flex-col overflow-hidden">
+    <!-- Header -->
+    <header
+      class="bg-white border-b border-gray-200 p-4 shadow-sm z-10 flex justify-between items-center"
+    >
+      <div>
+        <h1 class="text-xl font-bold text-gray-800">
+          Psychologia <span class="text-blue-900">Biznesu & Zarządzania</span>
+        </h1>
+        <p class="text-xs text-gray-500 mt-1">
+          Tryb:
+          <span id="mode-display" class="font-semibold text-blue-600"
+            >Nauka</span
+          >
+          | Pytanie: <span id="progress-display">0/0</span>
+        </p>
+      </div>
+      <div class="flex gap-2">
+        <button
+          onclick="app.resetProgress()"
+          class="text-xs text-red-600 hover:text-red-800 underline px-2"
+        >
+          Resetuj postęp
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+      <!-- Left Panel: Quiz Interface -->
+      <div
+        class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 flex justify-center"
+        id="quiz-container"
+      >
+        <div class="w-full max-w-3xl space-y-6">
+          <!-- Start Screen - USUNIĘTO KLASĘ HIDDEN -->
+          <div
+            id="start-screen"
+            class="flex flex-col items-center justify-center h-full text-center space-y-6 mt-10"
+          >
+            <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+              <h2 class="text-2xl font-bold mb-4 text-gray-800">
+                Baza Wiedzy Gotowa
+              </h2>
+              <p class="text-gray-600 mb-6">
+                Materiały z Wykładów 2, 3, 4, 5, 6 zostały załadowane zgodnie z
+                oryginałem.<br />Łącznie pytań:
+                <span class="font-bold text-blue-900" id="total-questions-count"
+                  >0</span
+                >.
+              </p>
+
+              <button
+                onclick="app.startQuiz('all')"
+                class="btn-action w-full py-3 px-6 bg-blue-900 text-white rounded-lg font-semibold shadow hover:bg-blue-800 mb-3"
+              >
+                Rozpocznij Pełny Quiz
+              </button>
+
+              <button
+                id="btn-review-start"
+                onclick="app.startQuiz('review')"
+                class="btn-action w-full py-3 px-6 bg-orange-600 text-white rounded-lg font-semibold shadow hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled
+              >
+                Tylko Powtórki (<span id="review-count">0</span>)
+              </button>
+            </div>
+          </div>
+
+          <!-- Question Card -->
+          <div
+            id="question-card"
+            class="hidden bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden slide-in"
+          >
+            <div class="p-6 md:p-8">
+              <div class="flex justify-between items-start mb-4">
+                <span
+                  class="inline-block px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-full uppercase tracking-wide"
+                  >Pytanie <span id="q-number">1</span></span
+                >
+                <button
+                  onclick="app.toggleLecture()"
+                  class="text-blue-900 hover:text-blue-700 text-sm font-semibold flex items-center gap-1"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                    />
+                  </svg>
+                  Wykład
+                </button>
+              </div>
+
+              <h2
+                id="q-text"
+                class="text-xl md:text-2xl font-bold text-gray-800 mb-8 leading-snug"
+              >
+                <!-- Treść pytania -->
+              </h2>
+
+              <div id="options-container" class="space-y-3">
+                <!-- Opcje generowane dynamicznie -->
+              </div>
+            </div>
+
+            <!-- Mini Lekcja (Feedback) -->
+            <div
+              id="feedback-section"
+              class="hidden bg-gray-50 border-t border-gray-200 p-6"
+            >
+              <div class="flex items-start gap-3">
+                <div id="feedback-icon" class="mt-1"></div>
+                <div>
+                  <h3 class="text-lg font-bold text-gray-900 mb-2">
+                    Mini-Lekcja
+                  </h3>
+                  <p
+                    id="feedback-text"
+                    class="text-gray-700 leading-relaxed"
+                  ></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Bar -->
+            <div
+              class="bg-gray-100 p-4 border-t border-gray-200 flex justify-between items-center"
+            >
+              <button
+                onclick="app.prevQuestion()"
+                class="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium text-sm flex items-center gap-1"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+                Wstecz
+              </button>
+
+              <div class="flex gap-2">
+                <button
+                  id="btn-add-review"
+                  onclick="app.addToReview()"
+                  class="hidden px-4 py-2 bg-orange-100 text-orange-700 hover:bg-orange-200 rounded-lg text-sm font-semibold transition-colors"
+                >
+                  + Dodaj do powtórek
+                </button>
+                <button
+                  id="btn-next"
+                  onclick="app.nextQuestion()"
+                  class="px-6 py-2 bg-blue-900 text-white hover:bg-blue-800 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center gap-2"
+                >
+                  Dalej
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- End Screen -->
+          <div
+            id="end-screen"
+            class="hidden flex flex-col items-center justify-center text-center space-y-6 mt-10"
+          >
+            <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+              <h2 class="text-3xl font-bold mb-2 text-gray-800">
+                Quiz Zakończony!
+              </h2>
+              <div class="text-6xl mb-4">🎓</div>
+              <p class="text-gray-600 mb-8">
+                Przejrzałeś wszystkie zaplanowane pytania w tej sesji.
+              </p>
+
+              <div class="space-y-3">
+                <button
+                  onclick="app.init()"
+                  class="btn-action w-full py-3 px-6 bg-white border-2 border-blue-900 text-blue-900 rounded-lg font-bold hover:bg-blue-50"
+                >
+                  Wróć do Menu Głównego
+                </button>
+                <button
+                  onclick="app.startQuiz('review')"
+                  id="btn-end-review"
+                  class="btn-action w-full py-3 px-6 bg-orange-600 text-white rounded-lg font-bold shadow hover:bg-orange-700"
+                >
+                  Rozpocznij Powtórkę
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Lecture Board -->
+      <div
+        id="lecture-panel"
+        class="fixed inset-y-0 right-0 w-full md:w-1/3 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out z-20 md:relative md:translate-x-full md:hidden border-l border-gray-200 flex flex-col"
+      >
+        <div
+          class="p-4 bg-blue-900 text-white flex justify-between items-center shadow-md"
+        >
+          <h3 class="font-bold text-lg flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              />
+            </svg>
+            Tablica Wykładowa
+          </h3>
+          <button
+            onclick="app.toggleLecture()"
+            class="text-white hover:text-gray-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="p-6 overflow-y-auto flex-1 bg-gray-50">
+          <div
+            id="lecture-content"
+            class="prose prose-blue max-w-none text-gray-800 text-sm leading-relaxed"
+          >
+            <p class="text-gray-500 italic">
+              Wybierz pytanie, aby zobaczyć powiązany materiał wykładowy.
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      /* --- JSON DATA START --- */
+      const questionsData = [
+        // --- WYKŁAD 6: MOTYWACJA I PRZYWÓDZTWO ---
+        {
+          id: 1,
+          question:
+            "Które stwierdzenie NAJLEPIEJ oddaje definicję motywacji według Lathama i Pindera?",
+          options: [
+            "Motywacja to wewnętrzna potrzeba samorealizacji",
+            "Motywacja to system nagród i kar w organizacji",
+            "Motywacja to zestaw sił inicjujących, ukierunkowujących i podtrzymujących zachowanie",
+            "Motywacja to poziom energii pracownika w pracy",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Definicja obejmuje siły pochodzące z osoby i z otoczenia, które inicjują, kierują i podtrzymują zachowanie. Slajd: 4",
+          lecture:
+            "<strong>Definicja Motywacji (Latham & Pinder)</strong><br><br>Motywacja jest procesem psychologicznym wynikającym z interakcji jednostki i środowiska. Definicja Lathama i Pindera jest powszechnie akceptowana w psychologii pracy, ponieważ uwzględnia zarówno czynniki wewnętrzne (potrzeby, wartości), jak i zewnętrzne (otoczenie, nagrody).<br><br>Kluczowe są trzy komponenty zachowania:<br>1. <strong>Inicjowanie:</strong> co uruchamia działanie?<br>2. <strong>Ukierunkowanie:</strong> na jaki cel działanie jest nastawione?<br>3. <strong>Podtrzymywanie:</strong> jak długo działanie jest kontynuowane mimo trudności?",
+        },
+        {
+          id: 2,
+          question:
+            "W teorii Maslowa zachowanie człowieka najsilniej kształtują:",
+          options: [
+            "Wszystkie potrzeby jednocześnie",
+            "Potrzeby najwyższego poziomu",
+            "Potrzeby aktualnie niezaspokojone",
+            "Potrzeby społeczne",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Tylko potrzeby niezrealizowane wpływają na zachowanie. Slajd: 6",
+          lecture:
+            "<strong>Hierarchia Potrzeb Maslowa</strong><br><br>Abraham Maslow stworzył model piramidy potrzeb, zakładając, że ludzie są motywowani przez niezaspokojone potrzeby. Obowiązują tu dwie główne reguły:<br>1. <strong>Zasada deficytu:</strong> zaspokojona potrzeba przestaje motywować.<br>2. <strong>Zasada progresji:</strong> potrzeba wyższego rzędu aktywuje się dopiero po zaspokojeniu potrzeby niższego rzędu (choć współczesne badania podważają sztywność tej reguły).",
+        },
+        {
+          id: 3,
+          question:
+            "Które założenie jest charakterystyczne dla teorii X McGregora?",
+          options: [
+            "Ludzie naturalnie dążą do odpowiedzialności",
+            "Praca jest tak naturalna jak zabawa",
+            "Ludzie unikają pracy i wymagają kontroli",
+            "Ludzie są wewnętrznie zmotywowani do rozwoju",
+          ],
+          correctIndex: 2,
+          explanation:
+            "teoria X: przyjęcie założenia o wrodzonej niechęci ludzi do pracy, człowiek w pracy jest leniwy, pozbawiony ambicji, pozoruje swoje zaangażowanie\nteoria Y: bazuje na założeniu, że praca jest tak samo naturalną aktywnością ludzi, jak zabawa czy wypoczynek, człowiek w pracy z natury jest ambitny, chętnie pracuje, rzetelnie wykonuje swoje obowiązki Slajd: 7",
+          lecture:
+            "<strong>Teoria X i Teoria Y (Douglas McGregor)</strong><br><br>McGregor opisał dwa przeciwstawne sposoby postrzegania pracowników przez menedżerów, które stają się samospełniającymi się przepowiedniami.<br><br><strong>Teoria X (Podejście autorytarne):</strong> Zakłada, że przeciętny pracownik nie lubi pracy, unika odpowiedzialności i musi być przymuszany, kontrolowany lub straszony karami, aby pracować efektywnie.<br><br><strong>Teoria Y (Podejście partycypacyjne):</strong> Zakłada, że wysiłek fizyczny i umysłowy w pracy jest naturalny. Ludzie są zdolni do samokierowania i samokontroli, jeśli są zaangażowani w cele, a nagrodą jest satysfakcja z ich realizacji.",
+        },
+        {
+          id: 4,
+          question:
+            "Według Herzberga (Teoria dwóch czynników – higieny i motywacji) brak czynników higieny prowadzi przede wszystkim do:",
+          options: [
+            "Spadku motywacji wewnętrznej",
+            "Poczucia niesprawiedliwości",
+            "Niezadowolenia z pracy",
+            "Braku możliwości awansu",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Czynniki higieny nie motywują, ale ich brak wywołuje niezadowolenie. Slajd: 8",
+          lecture:
+            "<strong>Teoria Dwóch Czynników Herzberga</strong><br><br>Herzberg odkrył, że satysfakcja i brak satysfakcji nie są przeciwległymi biegunami jednego wymiaru.<br><br><strong>1. Czynniki higieny (zewnętrzne):</strong> Dotyczą kontekstu pracy (wynagrodzenie, warunki pracy, relacje z szefem, polityka firmy). Ich obecność zapobiega niezadowoleniu, ale nie zwiększa motywacji (jest to stan neutralny). Ich brak powoduje niezadowolenie.<br><br><strong>2. Motywatory (wewnętrzne):</strong> Dotyczą treści pracy (osiągnięcia, uznanie, odpowiedzialność, rozwój). To one są źródłem prawdziwej satysfakcji i motywacji do pracy.",
+        },
+        {
+          id: 5,
+          question:
+            "W teorii McClellanda (Potrzeby osiągnięć: osiągnięć, władzy i przynależności) potrzeba władzy przejawia się jako:",
+          options: [
+            "Dążenie do mistrzostwa w zadaniach",
+            "Chęć utrzymywania bliskich relacji",
+            "Unikanie porażki",
+            "Dążenie do wpływu i kontroli nad innymi",
+          ],
+          correctIndex: 3,
+          explanation:
+            "Potrzeba władzy to potrzeba wywierania wpływu i kontroli. Slajd: 9",
+          lecture:
+            "<strong>Teoria Potrzeb McClellanda</strong><br><br>Model ten skupia się na trzech potrzebach nabytych w trakcie socjalizacji:<br><br><strong>1. Potrzeba Osiągnięć (nAch):</strong> Dążenie do sukcesu, przekraczania standardów, rozwiązywania trudnych problemów. Ludzie ci lubią zadania o umiarkowanym ryzyku i szybki feedback.<br><br><strong>2. Potrzeba Władzy (nPow):</strong> Pragnienie kontrolowania innych, wpływania na ich zachowanie i bycia odpowiedzialnym za innych. Jest kluczowa dla menedżerów.<br><br><strong>3. Potrzeba Przynależności (nAff):</strong> Pragnienie przyjaznych i bliskich relacji interpersonalnych, unikanie konfliktów.",
+        },
+        {
+          id: 6,
+          question:
+            "W teorii oczekiwań Vrooma (3 elementy motywacji: wartości, instrumentalności, oczekiwania) „instrumentalność” oznacza:",
+          options: [
+            "Atrakcyjność nagrody",
+            "Wiarę, że wysiłek doprowadzi do wykonania zadania",
+            "Przekonanie, że wykonanie zadania doprowadzi do nagrody",
+            "Siłę potrzeby osiągnięć",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Instrumentalność = przekonanie, że wynik doprowadzi do nagrody.\n• wartości: atrakcyjność nagrody, obejmuje subiektywne znaczenie otrzymanej nagrody dla jednostki\n•instrumentalności: określa subiektywne prawdopodobieństwo osiągnięcia nagród (celu)\n•oczekiwania: oceny poziomu wysiłku włożonego w realizację celu i prawdopodobieństwo osiągnięcia tegoż celu Slajd: 10",
+          lecture:
+            "<strong>Teoria Oczekiwań Vrooma (Model VIE)</strong><br><br>Motywacja jest iloczynem trzech zmiennych: <strong>M = V × I × E</strong>. Jeśli którakolwiek wynosi zero, motywacja znika.<br><br><strong>1. Walencja (Valence):</strong> Wartość/atrakcyjność nagrody dla pracownika (Czy chcę tego?).<br><strong>2. Instrumentalność (Instrumentality):</strong> Przekonanie, że wynik pociągnie za sobą nagrodę (Czy jeśli zrealizuję cel, to dostanę nagrodę?).<br><strong>3. Oczekiwanie (Expectancy):</strong> Przekonanie, że wysiłek doprowadzi do wyniku (Czy jeśli się postaram, to dam radę to zrobić?).",
+        },
+        {
+          id: 7,
+          question:
+            "Według teorii autodeterminacji wg Ryana i Deci, dobrostan pracownika wymaga zaspokojenia potrzeb:",
+          options: [
+            "Sukcesu, władzy, prestiżu",
+            "Autonomii, kompetencji, relacji",
+            "Bezpieczeństwa, przynależności, uznania",
+            "Sprawiedliwości, rozwoju, wynagrodzenia",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Trzy podstawowe potrzeby: autonomia, kompetencje, więzi. Człowiek jest z natury aktywny i zaangażowany, lubi poznawać nowe rzeczy i działać. Slajd: 12",
+          lecture:
+            "<strong>Teoria Autodeterminacji (SDT)</strong><br><br>Ryan i Deci wskazują, że ludzie mają wrodzone tendencje do rozwoju. Aby ten rozwój był możliwy, środowisko musi zaspokajać trzy uniwersalne potrzeby psychologiczne:<br><br><strong>1. Autonomia:</strong> Poczucie sprawstwa, że nasze działania wynikają z naszej woli i wyboru.<br><strong>2. Kompetencje:</strong> Poczucie skuteczności, radzenia sobie z wyzwaniami i rozwoju umiejętności.<br><strong>3. Relacje (Więzi):</strong> Poczucie przynależności, bycia rozumianym i troski o innych.",
+        },
+        {
+          id: 8,
+          question: "Która forma motywacji jest NAJBARDZIEJ autonomiczna?",
+          options: [
+            "Zewnętrzna regulacja",
+            "Zintrojektowana, włączona",
+            "Zintegrowana",
+            "Motywacja wewnętrzna",
+          ],
+          correctIndex: 3,
+          explanation:
+            "Motywacja wewnętrzna = działanie dla samej aktywności, bo fajne. Slajd: 13–14",
+          lecture:
+            "<strong>Continuum Motywacji w SDT</strong><br><br>Motywacja nie jest zero-jedynkowa, ale rozciąga się na kontinuum autonomii:<br><br>- <strong>Amotywacja:</strong> Brak intencji działania.<br>- <strong>Regulacja zewnętrzna:</strong> Działanie dla nagrody lub uniknięcia kary.<br>- <strong>Introjekcja:</strong> Działanie z poczucia winy, wstydu lub dla ochrony ego.<br>- <strong>Identyfikacja:</strong> Świadome uznanie celu za ważny.<br>- <strong>Integracja:</strong> Pełna zgodność celu z wartościami i tożsamością (najbardziej autonomiczna forma motywacji zewnętrznej).<br>- <strong>Motywacja wewnętrzna:</strong> Działanie dla samej przyjemności i satysfakcji z wykonywania czynności.",
+        },
+        {
+          id: 9,
+          question: "Badania pokazują, że nagrody zewnętrzne:",
+          options: [
+            "Zawsze obniżają motywację wewnętrzną",
+            "Nigdy nie wpływają na motywację wewnętrzną",
+            "Mogą zwiększać lub zmniejszać motywację wewnętrzną zależnie od warunków",
+            "Wpływają wyłącznie na zadania kreatywne",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Efekt zależy od kontekstu i sposobu stosowania nagród. Slajd: 16",
+          lecture:
+            "<strong>Wpływ Nagród na Motywację Wewnętrzną</strong><br><br>Zjawisko to jest złożone. Choć wczesne badania sugerowały, że nagrody zewnętrzne zawsze niszczą motywację wewnętrzną (efekt naduzasadnienia), współczesne meta-analizy pokazują niuanse:<br><br>- Jeśli nagroda jest postrzegana jako <strong>kontrolująca</strong> (robisz to dla pieniędzy), obniża motywację wewnętrzną.<br>- Jeśli nagroda jest postrzegana jako <strong>informująca</strong> o kompetencjach (np. nagroda za jakość, pochwała), może wzmacniać motywację wewnętrzną.",
+        },
+        {
+          id: 10,
+          question:
+            "Performance management czyli Zarządzanie efektywnością pracy to przede wszystkim:",
+          options: [
+            "Roczna ocena pracownika",
+            "System premiowy",
+            "Ciągły proces komunikacji i rozwoju",
+            "Kontrola realizacji celów finansowych",
+          ],
+          correctIndex: 2,
+          explanation:
+            "To stały proces rozmów, celów, feedbacku i rozwoju. Slajd: 19",
+          lecture:
+            "<strong>Performance Management vs Performance Appraisal</strong><br><br>Tradycyjna 'ocena pracownicza' (Appraisal) to często jednorazowe, biurokratyczne wydarzenie skupione na przeszłości. Nowoczesne 'Zarządzanie Efektywnością' (Management) to proces ciągły, oparty na regularnych rozmowach (check-ins), bieżącym feedbacku, coachingu i patrzeniu w przyszłość (rozwój), a nie tylko rozliczaniu przeszłości.",
+        },
+        {
+          id: 11,
+          question:
+            "Która sytuacja NAJLEPIEJ ilustruje czynnik motywacyjny wg Herzberga?",
+          options: [
+            "Podwyżka inflacyjna",
+            "Nowe ergonomiczne krzesła",
+            "Możliwość samodzielnego prowadzenia projektu",
+            "Regulamin pracy",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Odpowiedzialność i rozwój są wbudowane w treść pracy – to motywatory.",
+          lecture:
+            "<strong>Motywatory w Praktyce</strong><br><br>Według Herzberga, aby zmotywować pracownika, należy wzbogacić jego pracę (job enrichment). Przykłady motywatorów:<br>- Zwiększenie zakresu odpowiedzialności.<br>- Umożliwienie osiągnięcia widocznego sukcesu.<br>- Uznanie za dobrze wykonaną pracę.<br>- Awans i rozwój osobisty.<br><br>Pozostałe opcje (podwyżka, krzesła, regulamin) to czynniki higieny – ich poprawa jedynie zmniejszy niezadowolenie.",
+        },
+        {
+          id: 12,
+          question:
+            "Które zachowanie wskazuje na motywację zew. zidentyfikowaną?",
+          options: [
+            "„Robię to, bo inaczej dostanę karę”",
+            "„Robię to, bo szef tego chce”",
+            "„Robię to, bo to dla mnie ważne”",
+            "„Robię to, bo to sprawia mi czystą przyjemność”",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Identyfikacja = działanie zgodne z własnymi wartościami, ale nadal celowe.\nA to zew.; B to zew. zintrojektowana, włączona; D motywacja wew.; jeszcze jest zew. zintegrowana=spójna ze mną, ale nadal zew. Slajd: 14",
+          lecture:
+            "<strong>Identyfikacja vs Inne Formy Motywacji</strong><br><br>Regulacja zidentyfikowana to moment, w którym człowiek zaczyna uwewnętrzniać motywację zewnętrzną. Nie robi czegoś dla nagrody (zewnętrzna) ani ze wstydu (introjekcja), ale dlatego, że rozumie wartość i sens tego działania. Przykład: Uczę się nudnej statystyki nie dla oceny, ale dlatego, że chcę być dobrym badaczem (identyfikuję się z celem), mimo że sama czynność nie jest przyjemna (brak motywacji wewnętrznej).",
+        },
+        {
+          id: 13,
+          question:
+            "Najsilniejszym predyktorem wydajności w zadaniach ilościowych jest:",
+          options: [
+            "Motywacja wewnętrzna",
+            "Motywacja zewnętrzna",
+            "Autonomia",
+            "Satysfakcja z pracy",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Badania pokazują silniejszy wpływ motywacji zewnętrznej przy zadaniach ilościowych. Slajd: 16",
+          lecture:
+            "<strong>Ilość vs Jakość (Cerasoli et al., 2014)</strong><br><br>Metaanaliza badań nad motywacją wykazała ciekawą zależność:<br>- <strong>Motywacja zewnętrzna</strong> (zachęty finansowe) jest lepszym predyktorem <strong>ilości</strong> wykonanej pracy (wydajność w prostych zadaniach).<br>- <strong>Motywacja wewnętrzna</strong> jest silniejszym predyktorem <strong>jakości</strong> pracy i kreatywności.",
+        },
+        {
+          id: 14,
+          question:
+            "Zaspokojenie potrzeby relacji w pracy NAJMNIEJ wiąże się z:",
+          options: [
+            "Wyższym dobrostanem",
+            "Większym zaangażowaniem",
+            "Wyższą intencją odejścia z organizacji",
+            "Mniejszym wypaleniem",
+          ],
+          correctIndex: 2,
+          explanation: "Zaspokojenie potrzeb obniża chęć odejścia. Slajd: 17",
+          lecture:
+            "<strong>Znaczenie Relacji w Pracy</strong><br><br>Potrzeba przynależności jest fundamentalna. Dobre relacje w zespole i z przełożonym (zaspokojenie potrzeby więzi) działają jak bufor chroniący przed stresem i wypaleniem. Pracownicy, którzy czują się związani z ludźmi w firmie, znacznie rzadziej myślą o zmianie pracy (niska intencja rotacji).",
+        },
+        {
+          id: 15,
+          question: "Który element NIE należy do performance management?",
+          options: [
+            "Ustalanie celów",
+            "Coaching",
+            "Jednorazowa roczna ocena bez rozmów w ciągu roku",
+            "Informacja zwrotna",
+          ],
+          correctIndex: 2,
+          explanation:
+            "To jest zarządzanie efektywnością pracy. Jest to proces ciągły, nie jednorazowy. Ma zaangażować i motywować pracowników. Slajd: 19, 22",
+          lecture:
+            "<strong>Błędy w Zarządzaniu Efektywnością</strong><br><br>Traktowanie oceny pracowniczej jako jednorazowego, administracyjnego obowiązku ('odfajkowania' formularza raz w roku) jest zaprzeczeniem idei Performance Management. Skuteczny system opiera się na cykliczności: planowanie -> monitorowanie -> rozwój -> ocena -> nagradzanie.",
+        },
+        {
+          id: 16,
+          question:
+            "Podczas ongoing conversations - cyklicznych rozmów rozwojowych menedżer i pracownik powinni omawiać trzy główne perspektywy. Który zestaw najlepiej je odzwierciedla?",
+          options: [
+            "Wyniki finansowe firmy – cele zespołu – politykę HR",
+            "Ostatnie sukcesy – plany premiowe – ocenę roczną",
+            "Okres od ostatniego spotkania – aktualną sytuację – spojrzenie w przyszłość",
+            "Samoocenę – ocenę menedżera – decyzję o podwyżce",
+          ],
+          correctIndex: 2,
+          explanation:
+            "są trzy obszary rozmowy: podsumowanie okresu od poprzedniego spotkania, omówienie obecnego stanu oraz planowanie przyszłości. To pokazuje, że rozmowy mają charakter ciągły i rozwojowy, a nie oceniający czy administracyjny. Slajd: 22",
+          lecture:
+            "<strong>Struktura Rozmowy Rozwojowej</strong><br><br>Efektywna rozmowa '1 na 1' nie powinna być tylko sprawozdaniem z wykonanych zadań. Powinna obejmować:<br>1. <strong>Refleksję (Past):</strong> Co się wydarzyło? Czego się nauczyliśmy?<br>2. <strong>Tu i teraz (Present):</strong> Nad czym pracujemy? Jakie są blokady? Jakiego wsparcia potrzebujesz?<br>3. <strong>Planowanie (Future):</strong> Jakie są priorytety na najbliższy czas? Jak to się ma do celów rocznych?",
+        },
+        {
+          id: 162, // Unique ID needed because user duplicated number 16 in source text
+          question: "Model 70:20:10 zakłada, że największy rozwój pochodzi z:",
+          options: [
+            "Szkoleń formalnych",
+            "Samokształcenia",
+            "Doświadczenia w działaniu",
+            "Mentoringu",
+          ],
+          correctIndex: 2,
+          explanation:
+            "70% rozwoju = doświadczenie. 20% feedback, 10% formalne uczenie się Slajd: 26",
+          lecture:
+            "<strong>Model Rozwoju 70:20:10</strong><br><br>Model ten (opracowany przez Lombardo i Eichingera) sugeruje, że menedżerowie i pracownicy uczą się głównie przez praktykę:<br>- <strong>70%</strong> wiedzy pochodzi z trudnych zadań, projektów i doświadczeń w miejscu pracy (on-the-job).<br>- <strong>20%</strong> pochodzi od innych ludzi (mentoring, coaching, feedback, obserwacja).<br>- Tylko <strong>10%</strong> pochodzi z formalnych szkoleń, kursów i lektur.",
+        },
+        {
+          id: 17,
+          question:
+            "Który z poniższych elementów jest bezpośrednim rezultatem procesu oceny pracowniczej (People Review)?",
+          options: [
+            "Ustalenie indywidualnego planu szkoleniowego na kolejny rok",
+            "Automatyczna decyzja o wysokości podwyżki wynagrodzenia",
+            "Wykalibrowana ocena efektywności pracownika oraz identyfikacja puli talentów",
+            "Przyznanie nagród uznaniowych przez bezpośredniego przełożonego",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Ocena pracownicza prowadzi do wykalibrowanej (uzgodnionej między menedżerami) oceny efektywności, a także tworzenia puli talentów i sukcesorów. Nie jest to jeszcze bezpośrednia decyzja płacowa ani samo planowanie szkoleń — to raczej dane wejściowe do dalszych procesów. Slajd: 29",
+          lecture:
+            "<strong>Proces People Review (Kalibracja)</strong><br><br>Jest to spotkanie menedżerów wyższego szczebla, którego celem jest omówienie ocen pracowników, aby zapewnić sprawiedliwość i obiektywizm (kalibracja ocen - by uniknąć sytuacji, gdzie 'łatwy' szef daje wszystkim 5, a 'surowy' daje 3). Wynikiem jest mapa talentów (kto jest gwiazdą, kto ma potencjał, kto wymaga poprawy) oraz plany sukcesji.",
+        },
+        {
+          id: 18,
+          question:
+            "Które z poniższych działań najlepiej ilustruje przywództwo?",
+          options: [
+            "Tworzenie budżetu działu i kontrola realizacji planu",
+            "Ustalanie procedur pracy i monitorowanie wyników",
+            "Inspirowanie zespołu wspólną wizją przyszłości i budowanie zaufania",
+            "Organizowanie pracy i przydzielanie zadań zgodnie ze strukturą organizacyjną",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Przywództwo koncentruje się na wizji, inspirowaniu ludzi, budowaniu relacji i zaufania. Pozostałe odpowiedzi dotyczą klasycznych funkcji zarządzania: planowania, organizowania i kontroli. Slajd: 36",
+          lecture:
+            "<strong>Lider vs Menedżer (John Kotter)</strong><br><br>Kotter rozróżnia te dwie funkcje:<br>- <strong>Zarządzanie (Management):</strong> Radzenie sobie ze złożonością. Wprowadzanie porządku, planowanie, budżetowanie, organizowanie, kontrola i rozwiązywanie problemów.<br>- <strong>Przywództwo (Leadership):</strong> Radzenie sobie ze zmianą. Wyznaczanie kierunku (wizja), zespalanie ludzi (komunikacja), motywowanie i inspirowanie.",
+        },
+        {
+          id: 19,
+          question:
+            "W modelu Herseya i Blancharda teorii cech, delegowanie jest właściwe, gdy pracownik:",
+          options: [
+            "Ma niskie kompetencje i niską motywację",
+            "Ma wysokie kompetencje i wysoką gotowość",
+            "Ma wysoką motywację, ale brak umiejętności",
+            "Jest nowy w zespole",
+          ],
+          correctIndex: 1,
+          explanation: "Delegowanie = wysoka dojrzałość pracownika. Slajd: 41",
+          lecture:
+            "<strong>Przywództwo Sytuacyjne (Hersey & Blanchard)</strong><br><br>Skuteczny lider dobiera styl do poziomu gotowości pracownika (kompetencje + chęci):<br>- <strong>R1 (Nie umie, nie chce/niepewny):</strong> Instruowanie (S1).<br>- <strong>R2 (Nie umie, ale chce):</strong> Konsultowanie/Sprzedawanie (S2).<br>- <strong>R3 (Umie, ale nie chce/niepewny):</strong> Wspieranie (S3).<br>- <strong>R4 (Umie i chce):</strong> Delegowanie (S4) - oddanie odpowiedzialności.",
+        },
+        {
+          id: 20,
+          question:
+            "Menedżer wyjaśnia pracownikowi, co należy zrobić i dlaczego, zachęca do zadawania pytań, wysłuchuje sugestii, ale ostateczna decyzja nadal należy do niego. Jaki to styl kierowania?",
+          options: [
+            "Instruowanie",
+            "Konsultowanie",
+            "Wspieranie",
+            "Delegowanie",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Styl konsultowanie łączy wysoki poziom ukierunkowania na zadanie z wysokim wsparciem relacyjnym. Lider nadal kieruje i podejmuje decyzje, ale aktywnie włącza pracownika w rozmowę i wyjaśnia sens działań. Slajd: 41",
+          lecture:
+            "<strong>Styl Konsultujący (S2 - Selling)</strong><br><br>W tym stylu lider nadal wydaje polecenia (wysokie ukierunkowanie na zadania), ale jednocześnie dba o relacje i motywację (wysokie wsparcie). Tłumaczy decyzje, 'sprzedaje' pomysły i słucha opinii, aby zbudować zaangażowanie i kompetencje pracownika.",
+        },
+        {
+          id: 21,
+          question:
+            "Który styl przywództwa jest najsilniej związany ze spadkiem stresu pracowników?",
+          options: [
+            "Transakcyjny",
+            "Transformacyjny",
+            "Leseferystyczny",
+            "Autorytarny",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Styl transformacyjny koreluje ujemnie ze stresem. Charakteryzuje się: (wy)idealizowanym wpływem, inspirującą motywacją, intelektualną stymulacją, indywidualnym podejściem. Slajd: 47",
+          lecture:
+            "<strong>Przywództwo Transformacyjne a Zdrowie</strong><br><br>Liderzy transformacyjni, poprzez budowanie zaufania, nadawanie sensu pracy i indywidualne wsparcie, działają jak bufor chroniący pracowników przed wypaleniem i stresem. Pracownicy czują się wspierani, a nie tylko oceniani.",
+        },
+        {
+          id: 22,
+          question: "Przywództwo transakcyjne opiera się głównie na:",
+          options: [
+            "Inspiracji i wizji",
+            "Autonomii pracowników",
+            "Wymianie nagród za wyniki",
+            "Rozwoju potencjału emocjonalnego",
+          ],
+          correctIndex: 2,
+          explanation: "Slajd: 43",
+          lecture:
+            "<strong>Przywództwo Transakcyjne</strong><br><br>Opiera się na wymianie (transakcji) między liderem a podwładnym. Lider wyznacza jasne cele i obiecuje nagrody za ich realizację (Warunkowe Nagradzanie) lub interweniuje, gdy pojawiają się błędy (Zarządzanie przez Wyjątki). Jest skuteczne w stabilnych warunkach i przy prostych zadaniach.",
+        },
+        {
+          id: 23,
+          question: "Styl leseferystyczny charakteryzuje się:",
+          options: [
+            "Silną kontrolą",
+            "Unikaniem decyzji i odpowiedzialności",
+            "Inspirującą wizją",
+            "Wysokim wsparciem pracowników",
+          ],
+          correctIndex: 1,
+          explanation:
+            "zachowanie lidera cechuje się oporem przed zmianą i apatią, przez co mają tendencję do bycia reaktywnym niż proaktywnym w swoim stylu przywództwa Slajd: 45",
+          lecture:
+            "<strong>Styl Leseferystyczny (Laissez-faire)</strong><br><br>Często nazywany 'nie-przywództwem'. Lider abdykuje ze swojej roli: nie podejmuje decyzji, nie udziela feedbacku, nie wspiera i nie jest dostępny dla pracowników. Choć brzmi jak 'wolność', w praktyce prowadzi do najwyższego poziomu stresu, konfliktów i chaosu w zespole.",
+        },
+        {
+          id: 24,
+          question:
+            "Które stwierdzenie jest zgodne z wynikami badań dotyczącymi stylów przywództwa i dobrostanu pracowników?",
+          options: [
+            "Styl transakcyjny najsilniej obniża poziom stresu pracowników",
+            "Styl transformacyjny wiąże się z wyższym poziomem stresu, bo stawia wysokie wymagania",
+            "Styl leseferystyczny jest najsilniej powiązany z negatywnymi emocjami pracowników",
+            "Zachowania przywódcze mają znikomy wpływ na satysfakcję z pracy",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Badania pokazują, że styl leseferystyczny (unikanie decyzji, brak zaangażowania lidera) najsilniej wiąże się z negatywnymi emocjami pracowników. Z kolei styl transformacyjny koreluje ujemnie ze stresem, a transakcyjny dodatnio. Natomiast przywództwo ogólnie wyjaśnia istotną część satysfakcji z pracy. Slajd: 47",
+          lecture:
+            "<strong>Destrukcyjna Siła Braku Przywództwa</strong><br><br>Badania (m.in. Skogstad et al.) wykazują, że pasywne, unikałe przywództwo (leseferyzm) jest bardziej szkodliwe dla dobrostanu psychicznego pracowników niż przywództwo autorytarne. Brak struktury i wsparcia rodzi niepewność roli i sprzyja zjawiskom takim jak mobbing.",
+        },
+        {
+          id: 25,
+          question:
+            "Który zestaw elementów najtrafniej opisuje składniki skutecznego systemu rozwoju kadry kierowniczej?",
+          options: [
+            "Szkolenia formalne – ocena roczna – system premiowy",
+            "Inicjatywa osobista menedżera – inicjatywa organizacji – inicjatywa przełożonego",
+            "Plan sukcesji – testy kompetencyjne – ocena 360°",
+            "Coaching – mentoring – feedback",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Skuteczny system rozwoju kadry kierowniczej opiera się na trzech źródłach inicjatywy: samego menedżera (inicjatywa osobista), organizacji oraz bezpośredniego przełożonego. To pokazuje, że rozwój nie jest tylko indywidualny ani wyłącznie narzucony z góry — musi być wspólną odpowiedzialnością. Slajd: 50",
+          lecture:
+            "<strong>Ekosystem Rozwoju Menedżerskiego</strong><br><br>Rozwój liderów nie dzieje się w próżni. Wymaga synergii trzech stron:<br>1. <strong>Menedżer:</strong> Musi chcieć się rozwijać (self-development).<br>2. <strong>Organizacja:</strong> Musi dostarczyć zasoby, narzędzia i kulturę uczenia się.<br>3. <strong>Przełożony:</strong> Musi wspierać, mentorować i stwarzać okazje do nauki.",
+        },
+        {
+          id: 26,
+          question:
+            "Która cecha NIE należy do inteligencji emocjonalnej wg Golemana?",
+          options: [
+            "Samoświadomość",
+            "Świadomość społeczna",
+            "Myślenie analityczne",
+            "Umiejętności społeczne",
+          ],
+          correctIndex: 2,
+          explanation: "Slajd: 53",
+          lecture:
+            "<strong>Model Inteligencji Emocjonalnej (Daniel Goleman)</strong><br><br>Goleman podzielił IE na 4 domeny:<br>1. <strong>Samoświadomość:</strong> Rozumienie własnych emocji.<br>2. <strong>Zarządzanie sobą:</strong> Panowanie nad emocjami i adaptacja.<br>3. <strong>Świadomość społeczna:</strong> Empatia i rozumienie dynamiki grupy.<br>4. <strong>Zarządzanie relacjami:</strong> Wpływ, inspirowanie, rozwiązywanie konfliktów.<br><br>Myślenie analityczne jest domeną IQ (inteligencji poznawczej).",
+        },
+        {
+          id: 27,
+          question:
+            "W procesie rozwoju inteligencji emocjonalnej kluczowe jest:",
+          options: [
+            "Jednorazowe szkolenie",
+            "Przekazanie wiedzy teoretycznej",
+            "Ćwiczenie i informacja zwrotna",
+            "Test osobowości",
+          ],
+          correctIndex: 2,
+          explanation: "Slajd: 54",
+          lecture:
+            "<strong>Rozwijanie Kompetencji Emocjonalnych</strong><br><br>Inteligencja emocjonalna to umiejętność, a nie tylko wiedza. Nie można jej się nauczyć z książki. Wymaga zmiany nawyków neuronalnych, co następuje tylko poprzez długotrwałą praktykę w realnych sytuacjach i otrzymywanie informacji zwrotnej (feedbacku) na temat swojego zachowania.",
+        },
+        {
+          id: 28,
+          question:
+            "Która z poniższych sytuacji najlepiej ilustruje metodę zintegrowaną rozwoju kadry kierowniczej?",
+          options: [
+            "Menedżer uczestniczy wyłącznie w cyklu szkoleń stacjonarnych z zarządzania zespołem",
+            "Organizacja ocenia potencjał menedżera podczas sesji Development Center",
+            "Menedżer rozwija się poprzez połączenie szkoleń, coachingu, zadań projektowych i informacji zwrotnej w ramach spójnego planu rozwoju",
+            "Menedżer uczy się wyłącznie poprzez obserwację bardziej doświadczonych kolegów",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Metoda zintegrowana łączy różne formy rozwoju (formalne i nieformalne) w jeden spójny system działań dopasowany do potrzeb menedżera. Pozostałe odpowiedzi opisują pojedyncze podejścia: tylko formalne, tylko nieformalne albo samo narzędzie oceny.",
+          lecture:
+            "<strong>Podejście Zintegrowane (Blended Learning)</strong><br><br>Najskuteczniejsze programy rozwojowe łączą:<br>- <strong>Ocenę (Assessment):</strong> Aby zidentyfikować luki kompetencyjne.<br>- <strong>Wyzwanie (Challenge):</strong> Doświadczenia on-the-job, projekty.<br>- <strong>Wsparcie (Support):</strong> Coaching, mentoring, szkolenia.<br>Takie holistyczne podejście zapewnia trwalszą zmianę zachowań niż pojedyncze szkolenie.",
+        },
+
+        // --- WYKŁAD 5: STRES I WYPALENIE ---
+        {
+          id: 30,
+          question:
+            "Które stwierdzenie NAJLEPIEJ odróżnia stresor od napięcia (strain)?",
+          options: [
+            "Stresor to reakcja organizmu, napięcie to bodziec",
+            "Stresor to bodziec, napięcie to konsekwencja stresu",
+            "Stresor i napięcie to synonimy",
+            "Napięcie występuje tylko przy stresie fizycznym",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Stresor = źródło/bodziec. Napięcie = psychologiczne, fizjologiczne i behawioralne skutki stresu. Slajd: 3",
+          lecture:
+            "<strong>Stresor vs Stres vs Napięcie</strong><br><br>W psychologii stresu precyzja pojęciowa jest kluczowa:<br>- <strong>Stresor:</strong> Wymaganie zewnętrzne lub bodziec (np. hałas, presja czasu, konflikt).<br>- <strong>Stres:</strong> Proces reakcji psychofizjologicznej organizmu na stresor.<br>- <strong>Napięcie (Strain):</strong> Długofalowy, negatywny skutek stresu dla jednostki (np. ból głowy, lęk, wypalenie, choroba).",
+        },
+        {
+          id: 31,
+          question: "Który element NIE jest bezpośrednim źródłem stresu?",
+          options: [
+            "Konflikt ról",
+            "Monotonność pracy",
+            "Wysoka autonomia",
+            "Brak uznania w pracy",
+          ],
+          correctIndex: 2,
+          explanation: "Autonomia zwykle jest zasobem, nie stresorem. Slajd: 5",
+          lecture:
+            "<strong>Zasoby Pracy vs Wymagania</strong><br><br>Autonomia (kontrola nad własną pracą) jest jednym z najważniejszych zasobów w psychologii pracy. Pozwala pracownikowi radzić sobie z wymaganiami, redukując ich negatywny wpływ. Brak autonomii jest stresorem, ale jej wysoki poziom jest czynnikiem chroniącym.",
+        },
+        {
+          id: 32,
+          question:
+            "Zgodnie z prawem Yerkesa–Dodsona (krzywa Selye’go), najwyższa efektywność pojawia się przy:",
+          options: [
+            "Bardzo niskim pobudzeniu",
+            "Bardzo wysokim pobudzeniu",
+            "Umiarkowanym poziomie pobudzenia",
+            "Braku stresu",
+          ],
+          correctIndex: 2,
+          explanation: "Slajd: 6",
+          lecture:
+            "<strong>Krzywa Efektywności (Yerkes-Dodson)</strong><br><br>Zależność między pobudzeniem (stresem) a wydajnością ma kształt odwróconego U:<br>- Zbyt niskie pobudzenie = nuda, brak motywacji, niska efektywność.<br>- <strong>Umiarkowane pobudzenie (Eustres)</strong> = optymalna mobilizacja, najwyższa efektywność.<br>- Zbyt wysokie pobudzenie (Dystres) = lęk, paraliż decyzyjny, spadek efektywności.",
+        },
+        {
+          id: 33,
+          question:
+            "W modelu Wymagania–Kontrola najwyższe ryzyko stresu i napięcia występuje przy:",
+          options: [
+            "Niskich wymaganiach i wysokiej kontroli",
+            "Wysokich wymaganiach i wysokiej kontroli",
+            "Wysokich wymaganiach i niskiej kontroli",
+            "Niskich wymaganiach i niskiej kontroli",
+          ],
+          correctIndex: 2,
+          explanation:
+            "To tzw. praca wysokiego napięcia (high strain job). Slajd: 7",
+          lecture:
+            "<strong>Model JDC (Karasek) - Hipoteza Napięcia</strong><br><br>Model ten przewiduje, że najgorsza dla zdrowia jest kombinacja:<br><strong>Wysokie Wymagania + Niska Kontrola</strong>.<br>W takiej sytuacji pracownik jest przeciążony, ale nie ma wpływu na to, jak wykonać zadanie, co generuje silny lęk i ryzyko chorób sercowo-naczyniowych.",
+        },
+        {
+          id: 34,
+          question: "Presenteeism oznacza:",
+          options: [
+            "Częstą nieobecność w pracy",
+            "Pracę zdalną",
+            "Obecność w pracy mimo choroby i obniżonej efektywności",
+            "Pracę w nadgodzinach",
+          ],
+          correctIndex: 2,
+          explanation:
+            "choroby i wypadki w miejscu pracy – absencja oraz bycie obecnym w miejscu pracy mimo obniżonej efektywności z powodu choroby lub złego samopoczucia Slajd: 8",
+          lecture:
+            "<strong>Presenteeism (Prezenteizm)</strong><br><br>Zjawisko przychodzenia do pracy mimo choroby (fizycznej lub psychicznej). Pracownik jest obecny ciałem, ale nieefektywny. Szacuje się, że koszty prezenteizmu (błędy, zarażanie innych, wydłużony czas choroby) są dla firm wyższe niż koszty absencji chorobowej.",
+        },
+        {
+          id: 35,
+          question:
+            "Które działanie jest przykładem przeciwdziałania stresowi na poziomie ORGANIZACJI, a nie pracownika?",
+          options: [
+            "Techniki oddechowe i Aktywność fizyczna",
+            "Partycypacja i wprowadzenie elastycznych godzin pracy",
+            "Transparentna komunikacja i organizacja czasu pracy",
+            "Organizacja czasu pracy",
+          ],
+          correctIndex: 1,
+          explanation: "Slajd: 9–10",
+          lecture:
+            "<strong>Interwencje Antystresowe</strong><br><br>- <strong>Poziom Indywidualny (Wtórne):</strong> Uczenie pracownika radzenia sobie ze stresem (relaksacja, sport, terapia). Leczy objawy.<br>- <strong>Poziom Organizacyjny (Pierwotne):</strong> Zmiana warunków pracy, kultury, struktury (np. zwiększenie wpływu pracowników, redesign stanowisk, elastyczny czas). Usuwa przyczyny.",
+        },
+        {
+          id: 36,
+          question: "Job crafting polega głównie na tym, że:",
+          options: [
+            "Pracownik aktywnie modyfikuje sposób wykonywania pracy, relacje i znaczenie pracy",
+            "HR przeprojektowuje stanowiska pracy",
+            "Menedżer zmienia zakres obowiązków pracownika",
+            "Organizacja skraca czas pracy",
+          ],
+          correctIndex: 0,
+          explanation: "Slajd: 11",
+          lecture:
+            "<strong>Job Crafting (Przekształcanie Pracy)</strong><br><br>To oddolna inicjatywa pracownika, który sam dostosowuje swoją pracę do własnych mocnych stron i preferencji. Może zmieniać:<br>- <strong>Zadania:</strong> Jak i co robię?<br>- <strong>Relacje:</strong> Z kim i jak współpracuję?<br>- <strong>Poznawcze postrzeganie:</strong> Jak widzę sens mojej pracy?",
+        },
+        {
+          id: 37,
+          question:
+            "Który z poniższych elementów NIE należy do trzech wymiarów wypalenia zawodowego wg Maslach?",
+          options: [
+            "Emocjonalne wyczerpanie",
+            "Cynizm",
+            "Obniżone poczucie skuteczności",
+            "Chroniczne zmęczenie fizyczne",
+          ],
+          correctIndex: 3,
+          explanation:
+            "Zmęczenie fizyczne może występować, ale nie jest jednym z trzech kluczowych wymiarów modelu Maslach. Slajd: 13",
+          lecture:
+            "<strong>Trójczynnikowy Model Wypalenia (MBI)</strong><br><br>Christina Maslach zdefiniowała wypalenie jako syndrom składający się z:<br>1. <strong>Wyczerpania emocjonalnego:</strong> Uczucie pustki i braku zasobów emocjonalnych.<br>2. <strong>Depersonalizacji (Cynizmu):</strong> Negatywna, bezduszna postawa wobec ludzi (klientów, pacjentów, współpracowników).<br>3. <strong>Obniżonego poczucia dokonań osobistych:</strong> Poczucie niekompetencji i braku sukcesów.",
+        },
+        {
+          id: 38,
+          question: "Który objaw wypalenia ma charakter POZNAWCZY?",
+          options: [
+            "Poczucie beznadziei",
+            "Trudności z koncentracją",
+            "Chroniczne zmęczenie",
+            "Lęk i napięcie",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Slajd: 14 A to emocjonalne, C to fizyczne, D emocjonalne",
+          lecture:
+            "<strong>Sfery Objawów Wypalenia</strong><br><br>Wypalenie uderza w różne sfery funkcjonowania:<br>- <strong>Emocjonalna:</strong> Lęk, drażliwość, smutek.<br>- <strong>Fizyczna:</strong> Bóle głowy, bezsenność, spadek odporności.<br>- <strong>Poznawcza:</strong> Problemy z pamięcią, uwagą, decyzyjnością i koncentracją (często mylone z objawami depresji lub ADHD).",
+        },
+        {
+          id: 39,
+          question:
+            "Który czynnik jest przykładem zasobu pracy chroniącego przed wypaleniem?",
+          options: [
+            "Konflikt ról",
+            "Autonomia w pracy",
+            "Przeciążenie pracą",
+            "Niejednoznaczność roli",
+          ],
+          correctIndex: 1,
+          explanation: "Slajd: 15",
+          lecture:
+            "<strong>Rola Zasobów w Prewencji Wypalenia</strong><br><br>Zasoby pracy (takie jak wsparcie społeczne, feedback, autonomia, coaching) pełnią funkcję bufora. W sytuacji wysokich wymagań, to właśnie dostępność zasobów decyduje o tym, czy pracownik wpadnie w wypalenie, czy utrzyma zaangażowanie.",
+        },
+        {
+          id: 40,
+          question:
+            "Spadek efektywności pracy jest szczególnie powiązany z którym wymiarem wypalenia?",
+          options: [
+            "Cynizmem",
+            "Depersonalizacją",
+            "Emocjonalnym wyczerpaniem",
+            "Obniżonym poczuciem skuteczności",
+          ],
+          correctIndex: 2,
+          explanation: "Slajd: 16",
+          lecture:
+            "<strong>Konsekwencje Wyczerpania</strong><br><br>Badania wskazują, że to właśnie wyczerpanie emocjonalne (brak energii) jest najsilniejszym predyktorem spadku wydajności (performance). Pracownik po prostu nie ma 'paliwa', by wykonywać zadania na dotychczasowym poziomie.",
+        },
+        {
+          id: 41,
+          question:
+            "Które działanie NIE jest wskazane jako sposób przeciwdziałania wypaleniu?",
+          options: [
+            "Redukcja wymagań pracy",
+            "Zwiększanie zasobów pracy",
+            "Zwiększenie kontroli poprzez monitoring pracowników",
+            "Szkolenia z regeneracji",
+          ],
+          correctIndex: 2,
+          explanation: "Slajd: 17",
+          lecture:
+            "<strong>Zarządzanie Wypaleniem</strong><br><br>Zwiększanie kontroli zewnętrznej i monitoringu (mikrozarządzanie) zazwyczaj pogarsza sytuację, ponieważ odbiera pracownikowi autonomię i zwiększa stres. Skuteczna interwencja polega na budowaniu zaufania i wsparcia.",
+        },
+        {
+          id: 42,
+          question:
+            "Która cecha NAJLEPIEJ odróżnia pracoholizm od wysokiego zaangażowania w pracę?",
+          options: [
+            "Długie godziny pracy",
+            "Pozytywne emocje podczas pracy",
+            "Wewnętrzny przymus pracy i utrata kontroli",
+            "Myślenie o pracy poza godzinami pracy",
+          ],
+          correctIndex: 2,
+          explanation: "Slajd: 20–21",
+          lecture:
+            "<strong>Pracoholizm vs Zaangażowanie</strong><br><br>Kluczowa różnica tkwi w motywacji:<br>- <strong>Zaangażowany:</strong> Pracuje dużo, bo lubi (pasja, radość). Potrafi odpoczywać.<br>- <strong>Pracoholik:</strong> Pracuje dużo, bo czuje, że musi (lęk, przymus wewnętrzny). Nie potrafi się wyłączyć, a niepracowanie wywołuje u niego poczucie winy.",
+        },
+        {
+          id: 43,
+          question:
+            "Które zachowanie jest poznawczym wskaźnikiem pracoholizmu?",
+          options: [
+            "Praca w weekendy",
+            "Ciągłe myślenie o pracy mimo jej niewykonywania",
+            "Satysfakcja z wykonanej pracy",
+            "Zmęczenie fizyczne",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Wskaźniki poznawcze:\nprzymus pracy –osoba czuje ciągłą, wewnętrzną potrzebę wykonywania pracy niezwiązaną z zewnętrznymi wymaganiami\ndoświadczanie nieustępujących myśli na temat pracy, wtedy gdy się jej nie wykonuje\nutrata kontroli nad pracą\nirracjonalne poglądy na temat pracy\nSlajd: 21",
+          lecture:
+            "<strong>Objawy Pracoholizmu</strong><br><br>Pracoholizm ma wymiar behawioralny (dużo pracuję) i poznawczy (dużo myślę o pracy). Ten drugi jest bardziej toksyczny – to obsesyjne ruminacje o pracy w czasie wolnym, które uniemożliwiają regenerację.",
+        },
+        {
+          id: 44,
+          question: "DUWAS służy do pomiaru:",
+          options: [
+            "Poziomu stresu zawodowego",
+            "Wypalenia zawodowego",
+            "Pracoholizmu",
+            "Zaangażowania w pracę",
+          ],
+          correctIndex: 2,
+          explanation: "Slajd: 22",
+          lecture:
+            "<strong>Skala DUWAS (Dutch Work Addiction Scale)</strong><br><br>To jedno z najpopularniejszych narzędzi do diagnozy pracoholizmu. Mierzy dwa główne wymiary:<br>1. <strong>Pracowanie nadmierne (Working Excessively):</strong> Wymiar behawioralny.<br>2. <strong>Pracowanie kompulsywne (Working Compulsively):</strong> Wymiar poznawczy (obsesja).",
+        },
+        {
+          id: 45,
+          question:
+            "Marta pracuje w dynamicznym dziale sprzedaży. Ma bardzo wysokie targety, mało wpływu na sposób realizacji zadań, a decyzje podejmowane są wyłącznie przez przełożonego. Coraz częściej odczuwa napięcie, zmęczenie i problemy ze snem. Który model najlepiej wyjaśnia sytuację Marty?",
+          options: [
+            "Model Yerkesa–Dodsona",
+            "Model Wymagania–Kontrola (JDC)",
+            "Model wypalenia Maslach",
+            "Model job craftingu",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Wysokie wymagania + niska kontrola = praca wysokiego napięcia (high strain job), która zwiększa ryzyko stresu i negatywnych konsekwencji zdrowotnych. Slajd: 7",
+          lecture:
+            "<strong>Zastosowanie Modelu JDC</strong><br><br>Sytuacja Marty to klasyczny przykład 'pułapki' opisanej przez Karaska. Problemem nie są tylko wysokie wymagania (targety), ale fakt, że nie ma ona narzędzi (kontroli/decyzyjności), by sobie z nimi radzić w swój sposób.",
+        },
+        {
+          id: 46,
+          question:
+            "Tomasz od kilku miesięcy czuje się wyczerpany emocjonalnie, coraz częściej reaguje cynicznie na klientów, a dodatkowo ma poczucie, że jego praca nie ma sensu i że jest w niej mało skuteczny. Który zestaw objawów najlepiej opisuje stan Tomasza?",
+          options: [
+            "Pracoholizm",
+            "Presenteeism",
+            "Wypalenie zawodowe",
+            "Eustres",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Emocjonalne wyczerpanie + cynizm + obniżone poczucie skuteczności = trzy kluczowe wymiary wypalenia zawodowego wg Maslach. Slajd: 13",
+          lecture:
+            "<strong>Obraz Kliniczny Wypalenia</strong><br><br>Tomasz prezentuje pełną triadę objawów MBI. Wyczerpanie jest pierwszym sygnałem, cynizm pojawia się jako mechanizm obronny (dystansowanie się), a spadek poczucia skuteczności jest efektem końcowym utraty zasobów.",
+        },
+
+        // --- WYKŁAD 4: DOBROSTAN I SATYSFAKCJA ---
+        {
+          id: 47,
+          question: "Eudajmonistyczny dobrostan zawodowy dotyczy głównie:",
+          options: [
+            "Częstego odczuwania przyjemnych emocji",
+            "Unikania negatywnych emocji",
+            "Poczucia sensu i realizacji wartości w pracy",
+            "Wysokiej satysfakcji z wynagrodzenia",
+          ],
+          correctIndex: 2,
+          explanation:
+            "sens w pracy; świadome dążenie do stawianych sobie celów ; działania realizowany w pracy są zbieżne lub wypływające z głęboko zakorzenionych wartości pracownika. AiB hedonistyczne Slajd: 4",
+          lecture:
+            "<strong>Dwa Podejścia do Dobrostanu</strong><br><br>- <strong>Hedonistyczne:</strong> Skupia się na przyjemności (dużo pozytywnych emocji, mało negatywnych, satysfakcja). Pytanie: 'Czy jest mi dobrze?'<br>- <strong>Eudajmonistyczne:</strong> Skupia się na samorealizacji, sensie i wartościach. Pytanie: 'Czy to, co robię, jest wartościowe/rozwojowe?'.",
+        },
+        {
+          id: 48,
+          question:
+            "Która sytuacja najlepiej ilustruje różnicę między zadowoleniem a satysfakcją z pracy?",
+          options: [
+            "Pracownik lubi współpracowników i",
+            "Pracownik jest zadowolony z warunków pracy, ale nie widzi możliwości rozwoju",
+            "Pracownik otrzymał premię",
+            "Pracownik nie odczuwa stresu",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Zadowolenie ≠ głęboka satysfakcja obejmująca rozwój, sens i identyfikację. Slajd: 6",
+          lecture:
+            "<strong>Zadowolenie vs Satysfakcja</strong><br><br>Zadowolenie często odnosi się do warunków zewnętrznych (higieny) i jest stanem pasywnym ('jest okej'). Satysfakcja jest stanem głębszym, wynikającym z treści pracy, osiągnięć i rozwoju.",
+        },
+        {
+          id: 49,
+          question:
+            "Który z poniższych NIE należy do klasycznych wymiarów satysfakcji z pracy (Smith i in.)?",
+          options: [
+            "Rodzaj wykonywanych zadań",
+            "Wynagrodzenie",
+            "Styl przywództwa organizacji",
+            "Relacje ze współpracownikami i przełożonym",
+          ],
+          correctIndex: 2,
+          explanation: "Slajd: 7",
+          lecture:
+            "<strong>Wymiary Satysfakcji (Model JDI)</strong><br><br>Najpopularniejszy kwestionariusz JDI (Job Descriptive Index) wyróżnia 5 faset satysfakcji:<br>1. Praca sama w sobie (Work itself).<br>2. Płaca (Pay).<br>3. Możliwości awansu (Promotion).<br>4. Przełożony (Supervision).<br>5. Współpracownicy (Coworkers).",
+        },
+        {
+          id: 50,
+          question: "Autonomia i informacja zwrotna w pracy są przykładami:",
+          options: [
+            "Cech osobowości pracownika",
+            "Zasobów pracy sprzyjających satysfakcji",
+            "Wymagań pracy",
+            "Elementów kontraktu psychologicznego",
+          ],
+          correctIndex: 1,
+          explanation: "Slajd: 8",
+          lecture:
+            "<strong>Zasoby Pracy (Job Resources)</strong><br><br>To te fizyczne, psychologiczne, społeczne lub organizacyjne aspekty pracy, które:<br>1. Redukują koszty fizjologiczne/psychiczne.<br>2. Są funkcjonalne w osiąganiu celów.<br>3. Stymulują rozwój osobisty.<br>Autonomia i feedback to kluczowe zasoby.",
+        },
+        {
+          id: 51,
+          question:
+            "Które stwierdzenie najtrafniej opisuje, co mierzy Kwestionariusz Satysfakcji MSQ?",
+          options: [
+            "Poziom pozytywnych i negatywnych emocji przeżywanych w pracy",
+            "Stopień dopasowania pracownika do organizacji",
+            "Różne aspekty satysfakcji z pracy, takie jak zadania, wynagrodzenie czy relacje",
+            "Poczucie sensu i znaczenia wykonywanej pracy",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Minnesota Satisfaction Questionnaire służy do pomiaru wielowymiarowej satysfakcji z pracy, obejmującej m.in. charakter zadań, warunki pracy, relacje i możliwości rozwoju — a nie emocje czy sens pracy. Slajd: 9",
+          lecture:
+            "<strong>Kwestionariusz MSQ (Minnesota Satisfaction Questionnaire)</strong><br><br>To narzędzie badające satysfakcję w ujęciu 'fasetowym' (aspektowym). Pozwala zmierzyć zadowolenie z 20 różnych aspektów pracy (np. aktywność, niezależność, różnorodność, autorytet, warunki pracy), dając bardzo szczegółowy obraz tego, co pracownik ceni, a co mu przeszkadza.",
+        },
+        {
+          id: 52,
+          question: "Skala JAWS mierzy przede wszystkim:",
+          options: [
+            "Afektywny dobrostan związany z pracą",
+            "Poczucie sensu w pracy",
+            "Satysfakcję poznawczą z pracy",
+            "Przywiązanie do organizacji",
+          ],
+          correctIndex: 0,
+          explanation: "A, Slajd: 11",
+          lecture:
+            "<strong>Skala JAWS (Job-related Affective Well-being Scale)</strong><br><br>W odróżnieniu od MSQ (które bada oceny/satysfakcję), JAWS bada czyste emocje (afekt). Pyta o częstotliwość odczuwania w pracy różnych stanów emocjonalnych – zarówno pozytywnych (np. entuzjazm, spokój), jak i negatywnych (np. złość, lęk, przygnębienie).",
+        },
+        {
+          id: 53,
+          question:
+            "Który element NIE należy do trzech komponentów sensu pracy wg Stegera i Dika?",
+          options: [
+            "Osobisty sens pracy",
+            "Budowanie sensu życia przez pracę",
+            "Wysokie wynagrodzenie jako źródło sensu",
+            "Wkład w większe dobro",
+          ],
+          correctIndex: 2,
+          explanation: "Slajd: 12",
+          lecture:
+            "<strong>Sens Pracy (Meaning of Work)</strong><br><br>Psychologowie definiują sens pracy poprzez trzy filary:<br>1. <strong>Osobiste znaczenie:</strong> Praca jest ważna dla mnie, rozumiem po co ją wykonuję.<br>2. <strong>Tworzenie sensu (Meaning making):</strong> Praca pomaga mi zrozumieć świat i siebie.<br>3. <strong>Większe dobro (Greater good):</strong> Moja praca przynosi pożytek innym/społeczeństwu.",
+        },
+        {
+          id: 54,
+          question:
+            "Przywiązanie kontynuacyjne do organizacji wynika głównie z:",
+          options: [
+            "Emocjonalnej więzi",
+            "Poczucia moralnego obowiązku",
+            "Kalkulacji kosztów odejścia",
+            "Identyfikacji z wartościami organizacji",
+          ],
+          correctIndex: 2,
+          explanation:
+            "✓ przywiązanie afektywne –świadczy o chęci do identyfikowania się z organizacją oraz angażowania w związane z nią sprawy i problemy\n✓ przywiązanie kontynuacyjne –ma charakter instrumentalny i wiąże się z przekonaniem, że rezygnacja z pracy w danej organizacji jest zbyt kosztowna\n✓ przywiązanie normatywne –związane jest z poczuciem moralnego obowiązku kontynuowania zatrudnienia Slajd: 15",
+          lecture:
+            "<strong>Trójskładnikowy Model Przywiązania (Meyer & Allen)</strong><br><br>Pracownicy zostają w firmie z trzech powodów:<br>- <strong>Afektywne:</strong> Bo chcą (lubią firmę).<br>- <strong>Normatywne:</strong> Bo powinni (czują się zobowiązani).<br>- <strong>Kontynuacyjne:</strong> Bo muszą (nie opłaca im się odejść, np. stracą benefity, staż, nie mają innej opcji).",
+        },
+        {
+          id: 55,
+          question:
+            "Michał pracuje jako specjalista IT. Zdarzało mu się zmieniać pracę, ale zawsze wybierał takie role, które dawały mu większą odpowiedzialność i widoczność w organizacji. Jaki rodzaj przywiązania jest tu najbardziej widoczny?",
+          options: [
+            "Przywiązanie do organizacji",
+            "Przywiązanie do zawodu",
+            "Przywiązanie do pracy",
+            "Przywiązanie do kariery",
+          ],
+          correctIndex: 3,
+          explanation:
+            "Michał jest nastawiony na rozwój ścieżki zawodowej i awans, niezależnie od organizacji czy konkretnej profesji. To typowe przywiązanie do kariery (career commitment). Slajd: 16",
+          lecture:
+            "<strong>Ogniska Przywiązania</strong><br><br>Można być przywiązanym do firmy, ale można też być przywiązanym do własnej kariery (Career Commitment). Tacy ludzie są lojalni przede wszystkim wobec własnego rozwoju i celów zawodowych. Często zmieniają pracodawców (job hopping), jeśli obecne miejsce przestaje wspierać ich awans.",
+        },
+        {
+          id: 56,
+          question:
+            "Który z poniższych elementów jest składnikiem zaangażowania w pracę wg Schaufeliego i Bakkera?",
+          options: [
+            "Lojalność wobec organizacji",
+            "Wigor",
+            "Satysfakcja z wynagrodzenia",
+            "Stabilność zatrudnienia",
+          ],
+          correctIndex: 1,
+          explanation:
+            "workengagement - pozytywny, dający satysfakcję, związany z pracą stan umysłu, na który składają się: wigor, zaabsorbowanie pracą i oddanie się pracy Slajd: 18",
+          lecture:
+            "<strong>Zaangażowanie w Pracę (Work Engagement)</strong><br><br>Definiowane jako pozytywny stan umysłu charakteryzujący się:<br>1. <strong>Wigorem:</strong> Wysoki poziom energii i odporności psychicznej.<br>2. <strong>Oddaniem (Dedication):</strong> Poczucie znaczenia, entuzjazm, inspiracja, duma.<br>3. <strong>Zaabsorbowaniem:</strong> Pełna koncentracja i trudność w oderwaniu się od pracy.",
+        },
+        {
+          id: 57,
+          question: "Zaabsorbowanie pracą oznacza, że pracownik:",
+          options: [
+            "Pracuje dłużej niż wymagane",
+            "Jest tak pochłonięty pracą, że nie zauważa upływu czasu",
+            "Czuje moralny obowiązek pracy",
+            "Odczuwa presję wynikającą z wymagań",
+          ],
+          correctIndex: 1,
+          explanation: "Slajd: 18",
+          lecture:
+            "<strong>Zaabsorbowanie a Flow</strong><br><br>Zaabsorbowanie jest zbliżone do stanu przepływu (flow). Czas 'przyspiesza', a człowiek całkowicie zatapia się w zadaniu. Jest to stan przyjemny, w przeciwieństwie do pracoholizmu, gdzie praca wynika z przymusu.",
+        },
+        {
+          id: 58,
+          question:
+            "Który kwestionariusz służy do pomiaru zaangażowania w pracę?",
+          options: ["MSQ", "JAWS", "WAMI", "UWES"],
+          correctIndex: 3,
+          explanation: "Slajd: 21",
+          lecture:
+            "<strong>Kwestionariusz UWES</strong><br><br>Utrecht Work Engagement Scale (UWES) to najpopularniejsze narzędzie do badania zaangażowania. Występuje w wersji pełnej (17 pytań) i skróconej (9 pytań). Mierzy trzy podskale: Wigor, Oddanie i Zaabsorbowanie.",
+        },
+        {
+          id: 59,
+          question:
+            "Które stwierdzenie najlepiej opisuje, co mierzy kwestionariusz UWES?",
+          options: [
+            "Ogólną satysfakcję z pracy i warunków zatrudnienia",
+            "Poziom stresu i obciążenia pracą",
+            "Pozytywny stan umysłu związany z pracą, obejmujący energię, oddanie i zaabsorbowanie",
+            "Stopień realizacji oczekiwań wobec pracodawcy",
+          ],
+          correctIndex: 2,
+          explanation:
+            "UWES mierzy zaangażowanie w pracę, którego składnikami są wigor (energia), oddanie się pracy oraz zaabsorbowanie pracą. To nie jest ani satysfakcja, ani stres, ani kontrakt psychologiczny. Slajd: 21",
+          lecture:
+            "<strong>UWES w Praktyce</strong><br><br>Wyniki UWES pozwalają ocenić 'stan energetyczny' pracowników. Wysoki wigor oznacza gotowość do wysiłku, wysokie oddanie oznacza identyfikację emocjonalną, a wysokie zaabsorbowanie oznacza skupienie.",
+        },
+        {
+          id: 60,
+          question: "Kontrakt psychologiczny jest przede wszystkim:",
+          options: [
+            "Formalną umową między pracownikiem a organizacją",
+            "Zbiorem przepisów prawa pracy",
+            "Subiektywnym wyobrażeniem wzajemnych zobowiązań",
+            "Systemem motywacyjnym",
+          ],
+          correctIndex: 2,
+          explanation: "Slajd: 23",
+          lecture:
+            "<strong>Kontrakt Psychologiczny</strong><br><br>To niepisana umowa zawierająca przekonania pracownika o tym, co on jest winien pracodawcy (np. lojalność, ciężką pracę) i co pracodawca jest winien jemu (np. bezpieczeństwo, rozwój, uczciwość). Jest w pełni subiektywny – istnieje 'w głowie' pracownika.",
+        },
+        {
+          id: 61,
+          question:
+            "Która cecha NIE jest właściwością kontraktu psychologicznego?",
+          options: [
+            "Jest subiektywny",
+            "Jest stały i niezmienny w czasie",
+            "Tworzy się na podstawie obserwacji",
+            "Rozpatrywany jest na poziomie indywidualnym",
+          ],
+          correctIndex: 1,
+          explanation: "Slajd: 25",
+          lecture:
+            "<strong>Dynamika Kontraktu</strong><br><br>Kontrakt psychologiczny nie jest ustalony raz na zawsze. Ewoluuje wraz ze stażem pracy, zmianami w życiu pracownika i zmianami w firmie. To ciągły proces negocjacji i redefinicji oczekiwań.",
+        },
+        {
+          id: 62,
+          question:
+            "Kontrakt psychologiczny relacyjny koncentruje się głównie na:",
+          options: [
+            "Wynagrodzeniu i bonusach",
+            "Krótkoterminowej wymianie",
+            "Społeczno-emocjonalnych, długoterminowych zobowiązaniach",
+            "Formalnych obowiązkach prawnych",
+          ],
+          correctIndex: 2,
+          explanation: "Slajd: 28",
+          lecture:
+            "<strong>Kontrakt Relacyjny vs Transakcyjny</strong><br><br>- <strong>Transakcyjny:</strong> Skupia się na wymianie ekonomicznej (pieniądze za pracę), jest krótkoterminowy i konkretny.<br>- <strong>Relacyjny:</strong> Opiera się na zaufaniu, lojalności i emocjach. Jest długoterminowy i mniej precyzyjny ('my dbamy o ciebie, ty dbasz o firmę').",
+        },
+        {
+          id: 63,
+          question:
+            "Które z poniższych oczekiwań najlepiej pasuje do zobowiązań pracownika, a nie pracodawcy, w ramach kontraktu psychologicznego?",
+          options: [
+            "Zapewnienie sprzyjających warunków pracy zespołowej",
+            "Wsparcie w rozwoju nowych umiejętności",
+            "Lojalność wobec organizacji",
+            "Zapewnienie autonomii na stanowisku pracy",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Lojalność jest przykładem zobowiązania pracownika wobec organizacji. Pozostałe odpowiedzi to typowe oczekiwania wobec pracodawcy (warunki pracy, rozwój, autonomia). Slajd: 27",
+          lecture:
+            "<strong>Strony Kontraktu</strong><br><br>W kontrakcie psychologicznym:<br>- <strong>Pracownik obiecuje:</strong> Lojalność, zaangażowanie, elastyczność, dbanie o tajemnice firmy.<br>- <strong>Pracodawca (w oczach pracownika) obiecuje:</strong> Sprawiedliwe traktowanie, bezpieczeństwo zatrudnienia, możliwości rozwoju, wsparcie.",
+        },
+        {
+          id: 64,
+          question: "Naruszenie kontraktu psychologicznego może prowadzić do:",
+          options: [
+            "Spadku satysfakcji z pracy",
+            "cynizm i obniżony dobrostan",
+            "nasilenie intencji opuszczenia organizacji",
+            "wszystkie odpowiedzi są poprawne",
+          ],
+          correctIndex: 3,
+          explanation: "Slajd: 30",
+          lecture:
+            "<strong>Konsekwencje Zerwania Kontraktu</strong><br><br>Gdy pracownik czuje, że firma nie dotrzymała obietnic (naruszenie kontraktu), reaguje silnymi emocjami (złość, poczucie zdrady). Prowadzi to do wycofania zaangażowania, zachowań kontrproduktywnych (CWB) i odejścia.",
+        },
+        {
+          id: 65,
+          question:
+            "Które stwierdzenie najtrafniej oddaje założenie modelu JD-R?",
+          options: [
+            "Każdy zawód ma ten sam zestaw czynników stresogennych",
+            "Wysokie wymagania pracy zawsze prowadzą do wypalenia, niezależnie od zasobów",
+            "Wymagania pracy prowadzą do wyczerpania, a zasoby pracy sprzyjają motywacji i zaangażowaniu",
+            "Zasoby pracy mają znaczenie tylko wtedy, gdy wymagania są niskie",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Model JD-R zakłada dwa procesy: wymagania pracy (np. presja czasu, obciążenie) uruchamiają proces wyczerpania, a zasoby pracy (np. wsparcie, autonomia, feedback) uruchamiają proces motywacyjny prowadzący do zaangażowania. Slajd: 32",
+          lecture:
+            "<strong>Model JD-R (Job Demands-Resources)</strong><br><br>Model ten opisuje dwa niezależne procesy w każdej pracy:<br>1. <strong>Ścieżka utraty zdrowia:</strong> Wymagania (Demands) -> Wyczerpanie -> Problemy zdrowotne.<br>2. <strong>Ścieżka motywacyjna:</strong> Zasoby (Resources) -> Zaangażowanie -> Wyniki.",
+        },
+        {
+          id: 66,
+          question:
+            "W Teori Wymagań i Zasobów Pracy JD-R, jaka kombinacja wymagań i zasobów będzie najbardziej optymalna dla funkcjonowania pracownika?",
+          options: [
+            "Niskie wymagania i niskie zasoby",
+            "Wysokie wymagania i niskie zasoby",
+            "Niskie wymagania i wysokie zasoby",
+            "Wysokie wymagania i wysokie zasoby",
+          ],
+          correctIndex: 3,
+          explanation:
+            "Najbardziej optymalna jest sytuacja, gdy wymagania są wysokie, ale towarzyszą im jeszcze wyższe zasoby – wtedy wymagania działają jak wyzwania, a zasoby pozwalają sobie z nimi skutecznie radzić, wspierając zaangażowanie zamiast wyczerpania. Slajd: 33",
+          lecture:
+            "<strong>Hipoteza Aktywnego Uczenia w JD-R</strong><br><br>Wysokie wymagania same w sobie nie są złe, jeśli pracownik ma odpowiednie zasoby, by im sprostać. Wtedy trudne zadania stają się wyzwaniami (challenge stressors), które stymulują rozwój, dumę i 'flow'.",
+        },
+        {
+          id: 67,
+          question:
+            "Który z poniższych zestawów najlepiej odpowiada kluczowym cechom pracy w Modelu Cech Pracy Hackmana i Oldhama?",
+          options: [
+            "Autonomia, wsparcie społeczne, wynagrodzenie, bezpieczeństwo zatrudnienia",
+            "Różnorodność umiejętności, identyfikowalność zadania, znaczenie zadania, autonomia",
+            "Wymagania pracy, zasoby pracy, wsparcie przełożonego",
+            "Sens pracy, wartości osobiste, rozwój duchowy",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Model Cech Pracy (JCM) obejmuje 5 kluczowych cech: różnorodność umiejętności, identyfikowalność zadania, znaczenie zadania, autonomię i informację zwrotną. Slajd: 35",
+          lecture:
+            "<strong>Model Cech Pracy (JCM)</strong><br><br>Hackman i Oldham wskazali 5 cech pracy, które budują motywację wewnętrzną:<br>1. Różnorodność (Skill Variety).<br>2. Identyfikowalność (Task Identity - robienie czegoś od A do Z).<br>3. Znaczenie (Task Significance - wpływ na innych).<br>4. Autonomia.<br>5. Sprzężenie zwrotne (Feedback).",
+        },
+        {
+          id: 68,
+          question:
+            "Pracownik wykonuje zadania samodzielnie, ale nigdy nie dowiaduje się, czy robi je dobrze i jaki jest efekt jego pracy. Która cecha pracy jest tu najniższa?",
+          options: [
+            "Autonomia",
+            "Znaczenie zadania",
+            "Informacja zwrotna",
+            "Różnorodność umiejętności",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Brakuje informacji zwrotnej o efektach pracy. Slajd: 35",
+          lecture:
+            "<strong>Feedback z Zadania</strong><br><br>W modelu JCM informacja zwrotna nie musi pochodzić od szefa. Najsilniejszy feedback płynie z samego zadania – gdy pracownik od razu widzi, czy to co zrobił, działa (np. programista widzi, że kod się kompiluje, lekarz widzi, że pacjent zdrowieje).",
+        },
+        {
+          id: 69,
+          question:
+            "Zgodnie z teorią zdarzeń afektywnych, co jest bezpośrednim źródłem emocji pracownika w pracy?",
+          options: [
+            "Codzienne zdarzenia i sytuacje w miejscu pracy",
+            "Długoterminowa satysfakcja z pracy",
+            "Stabilne cechy osobowości",
+            "Poziom wynagrodzenia",
+          ],
+          correctIndex: 0,
+          explanation:
+            "AET zakłada, że konkretne wydarzenia w pracy (np. konflikt, pochwała, problem) wywołują emocje, które następnie wpływają na postawy i zachowania pracownika. Slajd: 36",
+          lecture:
+            "<strong>Teoria Zdarzeń Afektywnych (AET)</strong><br><br>Weiss i Cropanzano zwrócili uwagę, że postawy (jak satysfakcja) nie są stałe. Są wynikiem kumulacji codziennych emocji wywoływanych przez 'mikro-zdarzenia' (hassles & uplifts). To, co dzieje się 'tu i teraz' (np. kłótnia z kolegą), ma bezpośrednie przełożenie na to, jak czujemy się w pracy.",
+        },
+        {
+          id: 70,
+          question:
+            "Zgodnie z teorią Poszerzającej i Budującej Funkcji Pozytywnych Emocji (BBT) Fredrickson, pozytywne emocje w pracy przede wszystkim:",
+          options: [
+            "Zwiększają koncentrację na zagrożeniach i problemach",
+            "Zawężają sposób myślenia, by szybciej reagować na trudności",
+            "Poszerzają repertuar myśli i działań oraz budują trwałe zasoby osobiste",
+            "Działają wyłącznie chwilowo i nie mają długofalowych efektów",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Pozytywne emocje poszerzają sposób myślenia i działania, co w dłuższej perspektywie pomaga budować zasoby psychiczne, społeczne i poznawcze. Negatywne emocje raczej zawężają pole uwagi. Slajd: 37",
+          lecture:
+            "<strong>Teoria BBT (Broaden-and-Build)</strong><br><br>Barbara Fredrickson wykazała, że o ile negatywne emocje dają nam przetrwanie (zawężają uwagę na zagrożeniu), o tyle pozytywne emocje (radość, ciekawość, wdzięczność) służą rozwojowi. <strong>Poszerzają</strong> naszą świadomość i kreatywność, co pozwala <strong>budować</strong> trwałe zasoby (np. nowe umiejętności, relacje) na przyszłość.",
+        },
+
+        // --- WYKŁAD 3: MARKETING ---
+        {
+          id: 71,
+          question:
+            "Które stwierdzenie najlepiej oddaje różnicę między klasycznym ujęciem marketingu a współczesnym ujęciem American Marketing Association (AMA)?",
+          options: [
+            "Klasyczne ujęcie koncentruje się na relacjach z klientami, a AMA wyłącznie na sprzedaży",
+            "Klasyczne ujęcie podkreśla proces wymiany, a AMA rozszerza marketing na tworzenie wartości także dla społeczeństwa",
+            "AMA ogranicza marketing wyłącznie do działań promocyjnych, a klasyczne ujęcie obejmuje cały marketing-mix",
+            "W ujęciu AMA marketing dotyczy tylko środowiska cyfrowego",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Klasyczna definicja skupia się na procesie wymiany realizującej cele stron, natomiast AMA rozszerza marketing na tworzenie, komunikowanie i dostarczanie wartości nie tylko klientom, ale też partnerom i całemu społeczeństwu. Slajd: 3–4",
+          lecture:
+            "<strong>Ewolucja Definicji Marketingu</strong><br><br>Stare definicje skupiały się na 'zbycie' i transakcji. Nowa definicja AMA (2007/2013) podkreśla, że marketing to działalność, instytucje i procesy służące tworzeniu, komunikowaniu, dostarczaniu i wymianie ofert, które mają <strong>wartość</strong> dla klientów, partnerów i społeczeństwa jako całości. To przesunięcie od 'zysku firmy' do 'wartości dla otoczenia'.",
+        },
+        {
+          id: 72,
+          question:
+            "Które połączenie najtrafniej opisuje podejście Marketingu 3.0?",
+          options: [
+            "Skupienie na produkcie, masowy klient, transakcja jeden–wielu",
+            "Skupienie na konsumencie jako jednostce rozumnej, relacja jeden–jeden",
+            "Skupienie na wartościach, postrzeganie klienta jako istoty z umysłem, sercem i duchem",
+            "Skupienie na efektywności produkcji i szerokiej dystrybucji",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Marketing 3.0 koncentruje się na wartościach i sensie, traktując klienta jako pełnego człowieka (umysł, serce, duch), a nie tylko odbiorcę produktu czy racjonalnego decydenta. A i D to marketing 1.0; to marketing 2.0 Slajd: 5",
+          lecture:
+            "<strong>Ewolucja Marketingu wg Kotlera</strong><br><br><strong>1.0:</strong> Produkt (sprzedać to, co wyprodukowaliśmy).<br><strong>2.0:</strong> Klient (zaspokoić potrzeby i utrzymać klienta).<br><strong>3.0:</strong> Człowiek i Wartości (uczynić świat lepszym).<br><strong>4.0:</strong> Cyfrowy (łączenie online/offline, budowanie orędownictwa).",
+        },
+        {
+          id: 73,
+          question:
+            "Która sytuacja najlepiej pokazuje przejście klienta do roli „propagatora” w Marketingu 4.0?",
+          options: [
+            "Klient regularnie kupuje tę samą markę, ale nie dzieli się opiniami",
+            "Klient porównuje ceny w różnych sklepach przed zakupem",
+            "Klient reaguje na promocje cenowe w sklepie stacjonarnym",
+            "Klient publikuje w mediach społecznościowych recenzje produktów i poleca je innym",
+          ],
+          correctIndex: 3,
+          explanation:
+            "W Marketingu 4.0 klient nie jest tylko nabywcą, ale też aktywnym źródłem informacji i rekomendacji (WoM, eWoM), wpływającym na innych konsumentów. Slajd: 7\n- Marketing 3.0 skupia się na wartościach i sensie (człowiek jako istota z umysłem, sercem i duchem)\n- Marketing 4.0 podkreśla interakcję, społeczności i rolę klienta jako propagatora\n- Marketing 5.0 wykorzystuje technologie (AI, big data, automatyzację) do tworzenia bardziej spersonalizowanego, ale nadal „ludzkiego” marketingu",
+          lecture:
+            "<strong>Klient jako Propagator (Advocate)</strong><br><br>W modelu ścieżki zakupowej 5A (Awareness, Appeal, Ask, Act, Advocate) najważniejszym celem jest doprowadzenie klienta do etapu <strong>Advocacy</strong>. W świecie cyfrowym rekomendacja klienta (recenzja, like, share) jest potężniejsza niż reklama firmy.",
+        },
+        {
+          id: 74,
+          question:
+            "Które działanie firmy najbardziej wykracza poza klasyczny marketing-mix i jest typowe dla Marketingu 4.0?",
+          options: [
+            "Firma uruchamia kampanię rabatową i promuje ją w telewizji",
+            "Firma analizuje komentarze klientów w mediach społecznościowych i angażuje ich w tworzenie nowych wariantów produktu",
+            "Firma rozszerza sieć sprzedaży o nowe punkty stacjonarne",
+            "Firma wprowadza nową linię produktów premium z wyższą ceną",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Odpowiedzi A, C i D mieszczą się w klasycznych elementach 4P (promocja, dystrybucja, produkt/cena). Odpowiedź B pokazuje dwustronną interakcję, współtworzenie i wykorzystanie aktywności klientów online, co jest charakterystyczne dla Marketingu 4.0",
+          lecture:
+            "<strong>Co-creation (Współtworzenie)</strong><br><br>Marketing 4.0 zaciera granice między firmą a klientem. Klienci nie są już biernymi odbiorcami, ale partnerami w procesie tworzenia wartości (co-creation). Media społecznościowe i big data umożliwiają firmom słuchanie głosu klienta w czasie rzeczywistym i reagowanie na niego.",
+        },
+        {
+          id: 75,
+          question:
+            "Które założenie jest charakterystyczne dla marketingu klasycznego?",
+          options: [
+            "Konsument jest współtwórcą treści marketingowych",
+            "Komunikacja jest dwukierunkowa i dialogiczna",
+            "Firma kontroluje marketing-mix i oddziałuje na reaktywnego konsumenta",
+            "Konsument jest przede wszystkim źródłem rekomendacji dla innych",
+          ],
+          correctIndex: 2,
+          explanation: "Slajd: 8",
+          lecture:
+            "<strong>Stary Paradygmat Marketingu</strong><br><br>Klasyczny marketing opierał się na modelu 'polowania'. Firma miała 'broń' (4P: Produkt, Cena, Promocja, Dystrybucja) i celowała w 'zwierzynę' (klienta). Zakładano, że firma ma pełną kontrolę nad przekazem, a klient jest biernym odbiorcą bodźców.",
+        },
+        {
+          id: 76,
+          question:
+            "Klient mówi sprzedawcy, że chce „tani odkurzacz”, ale po rozmowie okazuje się, że zależy mu głównie na niskich kosztach eksploatacji i wygodzie użytkowania, nawet jeśli cena zakupu będzie wyższa. Z jakim rodzajem potrzeby mamy tu do czynienia?",
+          options: [
+            "Potrzeba deklarowana",
+            "Potrzeba realna",
+            "Potrzeba przyjemna",
+            "Potrzeba dyskretna",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Klient deklaruje jedno („tani”), ale jego rzeczywista potrzeba dotyczy funkcjonalności i kosztów użytkowania — to przykład potrzeby realnej. Slajd: 18\nTo właśnie potrzeba dyskretna — potrzeba społeczna lub wizerunkowa, której klient zwykle nie ujawnia wprost.",
+          lecture:
+            "<strong>Typy Potrzeb Klienta</strong><br><br>- <strong>Deklarowane:</strong> To, co klient mówi głośno (Chcę tanio).<br>- <strong>Realne:</strong> To, co klient ma na myśli (Chcę, żeby było tanio w użytkowaniu).<br>- <strong>Nieujawnione:</strong> Czego klient nie mówi, ale oczekuje (Chcę być dobrze obsłużony).<br>- <strong>Dyskretne:</strong> Potrzeby wizerunkowe (Chcę zaimponować sąsiadom).",
+        },
+        {
+          id: 77,
+          question:
+            "Zespół marketingowy ustala, że reklama ma być skierowana do kobiet 25–35 lat, mieszkających w dużych miastach, aktywnych zawodowo. Którego elementu modelu 6M dotyczy ta decyzja?",
+          options: ["Mission", "Market", "Message", "Media"],
+          correctIndex: 1,
+          explanation:
+            "Opis dotyczy grupy docelowej, czyli elementu Market. Nie chodzi jeszcze o treść reklamy (Message), cel kampanii (Mission) ani kanały komunikacji (Media). Jeszcze jest money i measurement Slajd: 30",
+          lecture:
+            "<strong>Model 6M Planowania Reklamy</strong><br><br>1. <strong>Market:</strong> Do kogo mówimy? (Target).<br>2. <strong>Mission:</strong> Po co? (Cele).<br>3. <strong>Message:</strong> Co mówimy? (Przekaz).<br>4. <strong>Media:</strong> Gdzie mówimy? (Kanały).<br>5. <strong>Money:</strong> Za ile? (Budżet).<br>6. <strong>Measurement:</strong> Z jakim skutkiem? (Pomiar).",
+        },
+        {
+          id: 78,
+          question:
+            "Które stwierdzenie najlepiej opisuje, czym jest brief reklamowy?",
+          options: [
+            "Gotowa reklama przygotowana do emisji w mediach",
+            "Raport z badania skuteczności kampanii reklamowej",
+            "Uporządkowany zbiór informacji i wytycznych dotyczących planowanych działań reklamowych",
+            "Plan budżetu przeznaczonego na działania promocyjne",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Brief reklamowy to dokument porządkujący założenia, cele i wytyczne kampanii, przygotowywany przez klienta lub agencję — jeszcze przed stworzeniem właściwej reklamy. Slajd: 31",
+          lecture:
+            "<strong>Brief Reklamowy</strong><br><br>To fundamentalny dokument w pracy marketera. Stanowi 'instrukcję' dla agencji reklamowej. Musi zawierać: cel kampanii, opis grupy docelowej, główne przesłanie (USP/ESP), budżet, harmonogram i wymagania techniczne. Zły brief = zła reklama.",
+        },
+        {
+          id: 79,
+          question:
+            "Agencja reklamowa otrzymuje od klienta dokument zawierający informacje o produkcie, grupie docelowej, celach kampanii, tonie komunikacji i głównych przekazach, które powinny znaleźć się w reklamie. Ten dokument to przede wszystkim:",
+          options: [
+            "Strategia medialna",
+            "Brief reklamowy",
+            "Plan budżetowy kampanii",
+            "Raport z badania rynku",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Taki zestaw uporządkowanych informacji i wytycznych dla twórców kampanii to właśnie brief reklamowy, który stanowi punkt wyjścia do opracowania działań promocyjnych. Slajd: 31",
+          lecture:
+            "<strong>Znaczenie Briefu</strong><br><br>Brief jest mostem między strategią biznesową klienta a kreacją agencji. To w nim definiuje się 'problem do rozwiązania' i 'obietnicę marki'.",
+        },
+        {
+          id: 80,
+          question:
+            "Które z poniższych działań najlepiej ilustruje reklamę typu BTL (below the line)?",
+          options: [
+            "Emisja spotu reklamowego w ogólnopolskiej telewizji",
+            "Baner reklamowy na portalu informacyjnym o dużym zasięgu",
+            "Degustacja produktu połączona z demonstracją w punkcie sprzedaży",
+            "Reklama w kinie przed seansem filmu",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Reklama BTL obejmuje działania poza klasycznymi mass mediami, często bezpośrednie i niestandardowe, np. promocje w miejscu sprzedaży czy demonstracje produktu. Pozostałe przykłady to typowe działania ATL. A TTL to połączenie ich obu. Slajd: 32",
+          lecture:
+            "<strong>ATL vs BTL</strong><br><br>- <strong>ATL (Above The Line):</strong> Media masowe (TV, Radio, Prasa, Outdoor). Szeroki zasięg, budowanie świadomości.<br>- <strong>BTL (Below The Line):</strong> Działania bezpośrednie (POS, eventy, mailing, sampling). Precyzyjne dotarcie, budowanie konwersji.<br>- <strong>TTL (Through The Line):</strong> Podejście zintegrowane (np. kampania 360 stopni).",
+        },
+        {
+          id: 81,
+          question:
+            "W klasycznym modelu zachowań konsumenckich decyzja zakupowa jest przede wszystkim wynikiem:",
+          options: [
+            "Impulsywnej reakcji na bodziec reklamowy",
+            "Jednorazowego aktu wyboru produktu",
+            "Procesu obejmującego kilka etapów, od potrzeby do zachowań po zakupie",
+            "Wyłącznie wpływu emocji, niezależnie od informacji",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Klasyczne podejście traktuje zachowanie konsumenta jako proces decyzyjny, a nie pojedyncze zdarzenie — obejmuje rozpoznanie potrzeby, poszukiwanie informacji, ocenę opcji, zakup i ocenę po zakupie. Slajd: 38",
+          lecture:
+            "<strong>Proces Decyzyjny Konsumenta</strong><br><br>Zakup nie jest chwilą przy kasie. To proces:<br>1. Uświadomienie potrzeby.<br>2. Poszukiwanie informacji.<br>3. Ocena wariantów.<br>4. Decyzja zakupu.<br>5. Zachowanie po zakupie (dysonans, satysfakcja, lojalność).",
+        },
+        {
+          id: 82,
+          question:
+            "Który etap modelu AIDA odnosi się do momentu, w którym reklama utrzymuje uwagę odbiorcy poprzez argumenty, treść i informacje o produkcie?",
+          options: ["Attention", "Interest", "Desire", "Action"],
+          correctIndex: 1,
+          explanation:
+            "Etap Interest polega na podtrzymaniu uwagi odbiorcy i wzbudzeniu zainteresowania poprzez bardziej szczegółowe treści i argumenty. Attention(zwrócenie uwagi), Desire(chęć zakupu) I action. Slajd: 39",
+          lecture:
+            "<strong>Model AIDA - Interest</strong><br><br>Po przyciągnięciu uwagi (Attention - np. szokujący obrazek), reklama musi utrzymać zainteresowanie (Interest). Tutaj wchodzą argumenty, korzyści racjonalne i wyjaśnienie 'dlaczego warto'.",
+        },
+        {
+          id: 83,
+          question:
+            "Które działanie w reklamie najlepiej realizuje etap Attention w modelu AIDA?",
+          options: [
+            "Spersonalizowany zwroty np. „Szukasz najlepszej oferty pracy?”",
+            "Opisanie korzyści wynikających z używania produktu",
+            "Zastosowanie zaskakującego, metaforycznego obrazu, który łamie dosłowność",
+            "Odpowiedzi A i C są poprawne",
+          ],
+          correctIndex: 3,
+          explanation:
+            "Etap Attention polega na przyciągnięciu uwagi – np. przez zaskoczenie, metaforę wizualną, silny nagłówek czy emocjonalny bodziec. Slajd: 45",
+          lecture:
+            "<strong>Model AIDA - Attention</strong><br><br>W świecie szumu informacyjnego najtrudniej jest zdobyć pierwsze sekundy uwagi. Używa się do tego: pytań retorycznych, humoru, seksu, strachu, nietypowej typografii, kontrastowych kolorów lub łamania schematów poznawczych.",
+        },
+        {
+          id: 84,
+          question:
+            "Który element reklamy najlepiej realizuje etap Desire w modelu AIDA?",
+          options: [
+            "Krótki, chwytliwy nagłówek przyciągający uwagę",
+            "Pokazanie, jak produkt poprawia życie użytkownika i jakie daje konkretne korzyści",
+            "zastosowanie danych, statystyk, które potwierdzą wiarygodność przekazu",
+            "Przycisk „Kup teraz” z ograniczoną czasowo promocją",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Etap Desire polega na wzbudzeniu chęci posiadania produktu poprzez podkreślanie korzyści, odwoływanie się do potrzeb i budowanie pozytywnych skojarzeń. Odpowiedź A to attention, C to intrest, D to action Slajd: 48",
+          lecture:
+            "<strong>Model AIDA - Desire</strong><br><br>Pragnienie (Desire) to emocjonalne 'chcę to mieć'. W tym etapie reklama transformuje cechy produktu w korzyści dla klienta ('Ten krem ma witaminę C' -> 'Będziesz wyglądać młodziej').",
+        },
+        {
+          id: 85,
+          question:
+            "Który element modelu AISAS odróżnia go od klasycznego modelu AIDA?",
+          options: ["Attention", "Interest", "Search", "Desire"],
+          correctIndex: 2,
+          explanation:
+            "Model AISAS uwzględnia etap Search, czyli aktywne poszukiwanie informacji przez konsumenta (np. w internecie) przed podjęciem decyzji. Tego elementu nie ma w klasycznym modelu AIDA. Slajd: 50",
+          lecture:
+            "<strong>Model AISAS (Dentsu)</strong><br><br>Model dostosowany do ery internetu:<br>Attention -> Interest -> <strong>Search</strong> (Google/Opinie) -> Action -> <strong>Share</strong> (Udostępnienie).<br>Podkreśla aktywność konsumenta w szukaniu informacji i dzieleniu się nimi.",
+        },
+        {
+          id: 86,
+          question:
+            "Który element modelu AISAS odróżnia go od klasycznego modelu AIDA? (Pytanie powtórzone w źródle)",
+          options: ["Attention", "Interest", "Search", "Desire"],
+          correctIndex: 2,
+          explanation:
+            "Model AISAS uwzględnia etap Search, czyli aktywne poszukiwanie informacji przez konsumenta (np. w internecie) przed podjęciem decyzji. Tego elementu nie ma w klasycznym modelu AIDA. Jeszcze jest share- udostępniaj Slajd: 50",
+          lecture:
+            "<strong>Rola Search w AISAS</strong><br><br>Współczesny konsument po zainteresowaniu się reklamą nie biegnie do sklepu (jak w AIDA), ale sięga po smartfona. Jeśli marka nie istnieje w wynikach wyszukiwania lub ma złe opinie, proces zakupowy zostaje przerwany.",
+        },
+        {
+          id: 87,
+          question:
+            "Która sytuacja najlepiej ilustruje peryferyjny tor przetwarzania informacji w modelu ELM?",
+          options: [
+            "Konsument analizuje skład produktu i porównuje go z konkurencją",
+            "Konsument czyta recenzję i ocenia logiczne argumenty dotyczące jakości",
+            "Konsument uznaje produkt za dobry, bo reklamuje go znana i lubiana osoba",
+            "Konsument sprawdza dane techniczne",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Peryferyjny tor przetwarzania opiera się na prostych wskazówkach (heurystykach), takich jak atrakcyjność czy autorytet nadawcy, a nie na analizie argumentów. Odpowiedzi A, B i D opisują tor centralny. Slajd: 51",
+          lecture:
+            "<strong>Model ELM (Elaboration Likelihood Model)</strong><br><br>Petty i Cacioppo wyróżnili dwa tory perswazji:<br>1. <strong>Centralny:</strong> Dokładna analiza argumentów (wymaga motywacji i zdolności poznawczych).<br>2. <strong>Peryferyjny:</strong> Opieranie się na powierzchownych wskazówkach (np. atrakcyjność nadawcy, długość komunikatu, muzyka). Działa, gdy odbiorca jest zmęczony lub niezainteresowany.",
+        },
+        {
+          id: 88,
+          question:
+            "Zgodnie z modelem ELM, przetwarzanie przekazu torem centralnym jest najbardziej prawdopodobne, gdy:",
+          options: [
+            "Odbiorca ogląda reklamę w tle i nie jest szczególnie zainteresowany produktem",
+            "Reklama zawiera atrakcyjną muzykę i znaną twarz",
+            "Odbiorca jest silnie zaangażowany w temat i ma motywację do dokładnego przetwarzania informacji",
+            "Przekaz jest krótki, emocjonalny i oparty na humorze",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Tor centralny pojawia się, gdy odbiorca ma motywację i zdolność do analizy treści, więc skupia się na jakości argumentów. Pozostałe odpowiedzi opisują raczej tor peryferyjny. Slajd: 52",
+          lecture:
+            "<strong>Aktywacja Toru Centralnego</strong><br><br>Aby odbiorca przetwarzał torem centralnym, muszą być spełnione dwa warunki:<br>1. <strong>Motywacja:</strong> Temat musi być dla niego ważny osobiście.<br>2. <strong>Zdolność:</strong> Musi mieć czas i wiedzę, by zrozumieć argumenty.<br>Zmiana postawy uzyskana tym torem jest trwalsza.",
+        },
+        {
+          id: 89,
+          question:
+            "Dlaczego odwołania emocjonalne w reklamie mogą być skuteczne nawet wtedy, gdy odbiorca nie analizuje dokładnie treści przekazu?",
+          options: [
+            "Bo emocje zwiększają ilość zapamiętywanych danych technicznych",
+            "Bo emocje mogą wpływać na postawy automatycznie, bez pogłębionej analizy argumentów",
+            "Bo emocje sprawiają, że konsumenci stają się bardziej racjonalni",
+            "Bo emocje działają tylko w przypadku produktów luksusowych",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Emocje mogą wpływać na ocenę produktu i postawy poza świadomą, logiczną analizą — działają szybciej i bardziej intuicyjnie niż argumenty racjonalne. Slajd: 52",
+          lecture:
+            "<strong>Emocje w Perswazji</strong><br><br>Emocje działają często na zasadzie warunkowania klasycznego (transferu afektu). Jeśli reklama wywołuje radość, to uczucie zostaje skojarzone z marką, nawet jeśli nie pamiętamy żadnych argumentów o produkcie.",
+        },
+        {
+          id: 90,
+          question:
+            "Które stwierdzenie najlepiej opisuje jaką mogą pełnić funkcję pozytywne emocji w reklamie?",
+          options: [
+            "Zwiększają zdolność odbiorcy do koncentracji i analizy argumentów",
+            "Zawsze wzmacniają zapamiętywanie treści merytorycznej reklamy",
+            "Sprawiają, że odbiorcy dokładniej analizą przekaz",
+            "Mogą odciągać uwagę od argumentów i działać jako dystraktor",
+          ],
+          correctIndex: 3,
+          explanation:
+            "Pozytywne emocje mogą pełnić funkcję dystraktora – przyjemny nastrój, humor czy atrakcyjna forma mogą sprawić, że odbiorca mniej skupia się na treści argumentów, a bardziej na samym doświadczeniu emocjonalnym. współwystępowanie informacji z pozytywnymi emocjami ma znaczenie dla bardziej pozytywnych ocen reklam i ich zapamiętywania, choć przy negatywnych emocje informacje były dokładniej przetwarzane. Slajd: 52",
+          lecture:
+            "<strong>Pozytywne Emocje jako Dystraktor</strong><br><br>Gdy jesteśmy w dobrym nastroju, nasz krytycyzm spada (tor peryferyjny). Humor w reklamie (wampir energetyczny) może sprawić, że zapamiętamy świetny żart, ale zapomnimy, jakiej marki dotyczył. Negatywne emocje (np. lęk) częściej zmuszają do analizy (tor centralny), by znaleźć rozwiązanie problemu.",
+        },
+
+        // --- WYKŁAD 2: ZZL, CSR, ESG ---
+        {
+          id: 91,
+          question:
+            "W których obszarach organizacje odnoszą największe korzyści dzięki wysokiemu zaangażowaniu pracowników?",
+          options: [
+            "W wydłużeniu czasu pracy i wzroście indywidualnych zarobków",
+            "W ograniczeniu odejść pracowników, rzadszych nieobecnościach i mniejszej liczbie wypadków",
+            "W zwiększeniu liczby programów rozwojowych i inicjatyw HR",
+            "W poprawie wizerunku firmy przy braku wyraźnych zmian w funkcjonowaniu zespołów",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Najsilniejsze efekty wysokiego zaangażowania dotyczyły retencji pracowników, absencji oraz bezpieczeństwa pracy. Wzrast również dobrostan pracowników Slajdy: 3–5",
+          lecture:
+            "<strong>Biznesowe Uzasadnienie Zaangażowania</strong><br><br>Badania (np. Instytutu Gallupa) jednoznacznie pokazują twarde dane: zaangażowane zespoły mają o 81% niższą absencję, o 18-43% niższą rotację i o 64% mniej wypadków przy pracy. Zaangażowanie to nie 'miękki HR', to twardy wynik finansowy.",
+        },
+        {
+          id: 92,
+          question:
+            "Zarządzanie zasobami ludzkimi według Armstronga jest przede wszystkim:",
+          options: [
+            "Zbiorem procedur kadrowych i administracyjnych",
+            "Strategicznym i spójnym podejściem do zarządzania ludźmi jako kluczowymi aktywami organizacji",
+            "Systemem motywacyjnym opartym na premiach finansowych",
+            "Działem odpowiedzialnym wyłącznie za rekrutację i szkolenia",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Definicja podkreśla strategiczny charakter ZZL i traktowanie ludzi jako najcenniejszych aktywów organizacji. Slajd: 8",
+          lecture:
+            "<strong>Definicja HRM (Armstrong)</strong><br><br>Zarządzanie Zasobami Ludzkimi (ZZL) różni się od tradycyjnych 'kadr' (administracji personalnej). Jest podejściem strategicznym, zintegrowanym z celami biznesowymi firmy. Traktuje pracowników nie jako koszt do zminimalizowania, ale jako kapitał (aktywa), w który należy inwestować.",
+        },
+        {
+          id: 93,
+          question: "Najważniejsze cechy ZZL to:",
+          options: [
+            "nacisk na strategiczne zarządzanie ludźmi",
+            "traktowanie ludzi bardziej jako aktywów niż jako kosztów",
+            "uznanie, że interesy pracowników i pracodawców są wspólne",
+            "wszystkie odpowiedzi są poprawne",
+          ],
+          correctIndex: 3,
+          explanation: "slajd 10",
+          lecture:
+            "<strong>Kluczowe Cechy ZZL</strong><br><br>Nowoczesny HRM charakteryzuje się:<br>1. Strategicznością (wspiera cele biznesowe).<br>2. Podejściem zasobowym (ludzie to inwestycja).<br>3. Unitaryzmem (wspólnota interesów pracownika i firmy).<br>4. Spójnością działań (rekrutacja, ocena i rozwój są powiązane).",
+        },
+        {
+          id: 94,
+          question:
+            "Który zestaw najlepiej odzwierciedla podstawowe funkcje zarządzania zasobami ludzkimi (ZZL)?",
+          options: [
+            "Rekrutacja, księgowość, marketing, logistyka",
+            "Planowanie zatrudnienia, pozyskiwanie pracowników, rozwój, motywowanie i utrzymanie pracowników",
+            "Kontrola kosztów, nadzór produkcji, planowanie sprzedaży",
+            "Organizacja imprez firmowych, komunikacja wewnętrzna, działania wizerunkowe",
+          ],
+          correctIndex: 1,
+          explanation:
+            "Funkcje ZZL obejmują cały cykl zarządzania pracownikami — od planowania i pozyskiwania, przez rozwój i motywowanie, aż po utrzymanie pracowników w organizacji. Slajd: 12",
+          lecture:
+            "<strong>Cykl Życia Pracownika w Organizacji</strong><br><br>Funkcje HRM obejmują pełną ścieżkę:<br>1. Planowanie (Kogo potrzebujemy?).<br>2. Rekrutacja i Selekcja (Pozyskanie).<br>3. Onboarding (Wdrożenie).<br>4. Zarządzanie Efektywnością i Rozwój.<br>5. Wynagradzanie i Motywowanie.<br>6. Utrzymanie (Retencja) lub Zwolnienia (Outplacement).",
+        },
+        {
+          id: 95,
+          question:
+            "Które stwierdzenie najlepiej oddaje różnicę między ZZL a pracą psychologa organizacji?",
+          options: [
+            "ZZL koncentruje się głównie na badaniach naukowych, a psycholog organizacji na administracji kadrowej",
+            "ZZL ma charakter przede wszystkim operacyjno-biznesowy, a psycholog organizacji – naukowo-diagnostyczny",
+            "Psycholog organizacji zajmuje się wyłącznie rekrutacją, a ZZL wyłącznie szkoleniami",
+            "ZZL i psycholog organizacji pełnią w praktyce identyczne funkcje",
+          ],
+          correctIndex: 1,
+          explanation:
+            "ZZL skupia się na praktycznych, biznesowych działaniach związanych z zarządzaniem ludźmi, natomiast psycholog organizacji działa bardziej diagnostycznie, badawczo i projektowo, z perspektywy naukowej i długofalowej. ZZL jest bardziej zorientowany na teraźniejszość, psycholog na przyszłość. Slajd: 18",
+          lecture:
+            "<strong>HR vs Psychologia Pracy</strong><br><br>- <strong>HRM:</strong> Skupia się na wdrażaniu procesów, procedur i rozwiązań biznesowych 'tu i teraz'. Pyta: 'Jak zarządzać ludźmi, by firma miała zysk?'.<br>- <strong>Psychologia Organizacji:</strong> Skupia się na rozumieniu mechanizmów, diagnozie, badaniach i dobrostanie. Pyta: 'Dlaczego ludzie zachowują się tak, a nie inaczej i jak to wpływa na ich funkcjonowanie?'.",
+        },
+        {
+          id: 96,
+          question:
+            "Zgodnie z definicją CSR przedstawioną na slajdzie, społeczna odpowiedzialność biznesu oznacza, że organizacja:",
+          options: [
+            "Koncentruje się wyłącznie na maksymalizacji zysku dla właścicieli",
+            "Działa zgodnie z prawem pracy i przepisami podatkowymi",
+            "Uwzględnia w swojej strategii wpływ na środowisko oraz relacje z różnymi grupami interesariuszy",
+            "Ogranicza działania społeczne do sponsoringu i darowizn",
+          ],
+          correctIndex: 2,
+          explanation:
+            "CSR to podejście, w którym firma bierze pod uwagę wpływ swojej działalności na środowisko, otoczenie społeczne i różne grupy interesariuszy, a nie tylko wyniki finansowe. Slajd: 21",
+          lecture:
+            "<strong>CSR (Corporate Social Responsibility)</strong><br><br>To koncepcja, wg której firmy na etapie budowania strategii dobrowolnie uwzględniają interesy społeczne i ochronę środowiska, a także relacje z różnymi grupami interesariuszy (pracownicy, klienci, lokalna społeczność). To wyjście poza paradygmat Friedmana ('celem biznesu jest zysk').",
+        },
+        {
+          id: 97,
+          question:
+            "Który zestaw najlepiej odpowiada czynnikom sprzyjającym rozwojowi CSR wymienionym na slajdzie?",
+          options: [
+            "Deregulacja rynków, spadek znaczenia korporacji, stabilność społeczno-kulturowa",
+            "Globalizacja, rozwój przemysłu i wielkich korporacji, rozwój nauki o zarządzaniu, zmiany społeczno-kulturowe oraz globalne zagrożenia",
+            "Wzrost konsumpcjonizmu, redukcja kosztów pracy, automatyzacja i cyfryzacja",
+            "Przejście na marketing 4.0, rozwój influencerów i dominacja e-commerce",
+          ],
+          correctIndex: 1,
+          explanation: "",
+          lecture:
+            "<strong>Geneza Rozwoju CSR</strong><br><br>Wzrost znaczenia CSR wynika z globalnych trendów:<br>- Potęga korporacji (często większa niż państw).<br>- Globalizacja (łańcuchy dostaw).<br>- Świadomość ekologiczna i zmiany klimatu.<br>- Oczekiwania społeczne (Millenialsi i Gen Z chcą pracować w 'dobrych' firmach).",
+        },
+        {
+          id: 98,
+          question:
+            "Które stwierdzenie najtrafniej oddaje różnicę między CSR a ESG?",
+          options: [
+            "CSR dotyczy wyłącznie działań środowiskowych, a ESG wyłącznie społecznych",
+            "CSR odnosi się głównie do dobrowolnych działań odpowiedzialności firmy, a ESG do mierzalnych kryteriów oceny jej działań przez inwestorów",
+            "CSR jest obowiązkowe prawnie, a ESG całkowicie dobrowolne",
+            "żadne z powyższych",
+          ],
+          correctIndex: 1,
+          explanation:
+            "CSR to szersza koncepcja społecznej odpowiedzialności organizacji, często o charakterze deklaratywnym i strategicznym. ESG to zestaw konkretnych, mierzalnych wskaźników (środowiskowych, społecznych i ładu korporacyjnego), wykorzystywanych m.in. przez inwestorów do oceny firm.",
+          lecture:
+            "<strong>Od CSR do ESG</strong><br><br>- <strong>CSR:</strong> Filozofia działania, często jakościowa, miękka, wizerunkowa.<br>- <strong>ESG (Environmental, Social, Governance):</strong> Twarde dane, wskaźniki i raportowanie niefinansowe. Język rynków finansowych i inwestorów, służący do oceny ryzyka i wartości firmy.",
+        },
+        {
+          id: 99,
+          question:
+            "Które działanie organizacji najlepiej wpisuje się w filar S (Social) w koncepcji ESG?",
+          options: [
+            "Redukcja emisji CO₂ w procesie produkcji",
+            "Wprowadzenie niezależnej rady nadzorczej i polityki antykorupcyjnej",
+            "Programy wspierające dobrostan pracowników oraz równe traktowanie w miejscu pracy",
+            "Optymalizacja zużycia energii w budynkach biurowych",
+          ],
+          correctIndex: 2,
+          explanation:
+            "Filar S (Social) dotyczy relacji organizacji z ludźmi — obejmuje m.in. warunki pracy, różnorodność, równość, prawa pracowników, bezpieczeństwo i wpływ na społeczności. Pozostałe odpowiedzi dotyczą odpowiednio: środowiska (E) i ładu korporacyjnego (G).",
+          lecture:
+            "<strong>Filar 'S' w ESG</strong><br><br>Obejmuje to, jak firma traktuje ludzi:<br>- Wewnątrz: BHP, prawa pracownicze, Diversity & Inclusion, szkolenia, płace.<br>- Na zewnątrz: Prawa człowieka w łańcuchu dostaw, wpływ na lokalne społeczności, bezpieczeństwo produktu.",
+        },
+      ];
+      /* --- JSON DATA END --- */
+
+      /* --- LOGIC START --- */
+      const app = {
+        state: {
+          currentQuestionIndex: 0,
+          reviewQueue: [],
+          mode: "all",
+          activeIndices: [],
+          answered: false,
+          score: 0,
+        },
+
+        init() {
+          this.loadState();
+
+          // POPRAWKA: Jawne pokazanie ekranu startowego i ukrycie pozostałych
+          document.getElementById("start-screen").classList.remove("hidden");
+          document.getElementById("question-card").classList.add("hidden");
+          document.getElementById("end-screen").classList.add("hidden");
+
+          this.updateUIStart();
+          this.renderProgress();
+        },
+
+        loadState() {
+          const saved = localStorage.getItem("psychoQuizState");
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            this.state.reviewQueue = parsed.reviewQueue || [];
+          }
+        },
+
+        saveState() {
+          localStorage.setItem(
+            "psychoQuizState",
+            JSON.stringify({
+              reviewQueue: this.state.reviewQueue,
+            })
+          );
+        },
+
+        resetProgress() {
+          if (
+            confirm("Czy na pewno chcesz wyzerować całą historię powtórek?")
+          ) {
+            localStorage.removeItem("psychoQuizState");
+            this.state.reviewQueue = [];
+            location.reload();
+          }
+        },
+
+        startQuiz(mode) {
+          this.state.mode = mode;
+          this.state.currentQuestionIndex = 0;
+          this.state.answered = false;
+
+          if (mode === "all") {
+            this.state.activeIndices = questionsData.map((_, index) => index);
+            // Opcjonalne tasowanie - zakomentowane, aby zachować kolejność wykładową
+            // this.shuffleArray(this.state.activeIndices);
+          } else if (mode === "review") {
+            this.state.activeIndices = questionsData
+              .map((q, index) =>
+                this.state.reviewQueue.includes(q.id) ? index : -1
+              )
+              .filter((index) => index !== -1);
+
+            if (this.state.activeIndices.length === 0) {
+              alert("Brak pytań w powtórce!");
+              return;
+            }
+          }
+
+          document.getElementById("start-screen").classList.add("hidden");
+          document.getElementById("end-screen").classList.add("hidden");
+          document.getElementById("question-card").classList.remove("hidden");
+
+          this.renderQuestion();
+          this.renderProgress();
+        },
+
+        renderQuestion() {
+          const qIndex =
+            this.state.activeIndices[this.state.currentQuestionIndex];
+          const question = questionsData[qIndex];
+
+          document.getElementById("q-number").innerText =
+            this.state.currentQuestionIndex + 1;
+          document.getElementById("q-text").innerText = question.question;
+
+          const optionsContainer = document.getElementById("options-container");
+          optionsContainer.innerHTML = "";
+
+          question.options.forEach((opt, idx) => {
+            const btn = document.createElement("button");
+            btn.className = `w-full text-left p-4 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all font-medium text-gray-700`;
+            btn.innerText = opt;
+            btn.onclick = () => this.handleAnswer(idx, btn);
+            optionsContainer.appendChild(btn);
+          });
+
+          // Reset UI
+          document.getElementById("feedback-section").classList.add("hidden");
+          document.getElementById("btn-next").classList.add("hidden");
+          document.getElementById("btn-add-review").classList.add("hidden");
+          this.state.answered = false;
+
+          // Update lecture content hidden in panel
+          document.getElementById("lecture-content").innerHTML =
+            question.lecture;
+        },
+
+        handleAnswer(selectedIndex, btnElement) {
+          if (this.state.answered) return;
+          this.state.answered = true;
+
+          const qIndex =
+            this.state.activeIndices[this.state.currentQuestionIndex];
+          const question = questionsData[qIndex];
+          const buttons = document.getElementById("options-container").children;
+
+          // Visual feedback
+          if (selectedIndex === question.correctIndex) {
+            btnElement.classList.add("correct-answer");
+            this.showFeedback(true, question.explanation);
+          } else {
+            btnElement.classList.add("wrong-answer");
+            buttons[question.correctIndex].classList.add("correct-answer");
+            this.showFeedback(false, question.explanation);
+
+            // Auto add to review
+            if (!this.state.reviewQueue.includes(question.id)) {
+              this.state.reviewQueue.push(question.id);
+              this.saveState();
+            }
+          }
+
+          document.getElementById("btn-next").classList.remove("hidden");
+          document.getElementById("btn-add-review").classList.remove("hidden");
+
+          // Update button text if already in review
+          this.updateReviewButton(question.id);
+        },
+
+        showFeedback(isCorrect, text) {
+          const section = document.getElementById("feedback-section");
+          const icon = document.getElementById("feedback-icon");
+          const fbText = document.getElementById("feedback-text");
+
+          section.classList.remove("hidden");
+          section.className = isCorrect
+            ? "bg-green-50 border-t border-green-200 p-6 slide-in"
+            : "bg-red-50 border-t border-red-200 p-6 slide-in";
+
+          icon.innerHTML = isCorrect
+            ? `<svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`
+            : `<svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+
+          fbText.innerHTML =
+            (isCorrect
+              ? "<strong>Świetnie!</strong> "
+              : "<strong>Niepoprawnie.</strong> ") + text;
+        },
+
+        nextQuestion() {
+          if (
+            this.state.currentQuestionIndex <
+            this.state.activeIndices.length - 1
+          ) {
+            this.state.currentQuestionIndex++;
+            this.renderQuestion();
+            this.renderProgress();
+          } else {
+            this.endQuiz();
+          }
+        },
+
+        prevQuestion() {
+          if (this.state.currentQuestionIndex > 0) {
+            this.state.currentQuestionIndex--;
+            this.renderQuestion();
+            this.renderProgress();
+          }
+        },
+
+        addToReview() {
+          const qIndex =
+            this.state.activeIndices[this.state.currentQuestionIndex];
+          const question = questionsData[qIndex];
+
+          if (!this.state.reviewQueue.includes(question.id)) {
+            this.state.reviewQueue.push(question.id);
+            this.saveState();
+          }
+          this.updateReviewButton(question.id);
+        },
+
+        updateReviewButton(qId) {
+          const btn = document.getElementById("btn-add-review");
+          if (this.state.reviewQueue.includes(qId)) {
+            btn.innerText = "W powtórkach";
+            btn.classList.add("opacity-50", "cursor-not-allowed");
+            btn.disabled = true;
+          } else {
+            btn.innerText = "+ Dodaj do powtórek";
+            btn.classList.remove("opacity-50", "cursor-not-allowed");
+            btn.disabled = false;
+          }
+        },
+
+        endQuiz() {
+          document.getElementById("question-card").classList.add("hidden");
+          document.getElementById("end-screen").classList.remove("hidden");
+          this.updateUIStart();
+        },
+
+        toggleLecture() {
+          const panel = document.getElementById("lecture-panel");
+          panel.classList.toggle("translate-x-full");
+        },
+
+        updateUIStart() {
+          const count = this.state.reviewQueue.length;
+          document.getElementById("review-count").innerText = count;
+          document.getElementById("total-questions-count").innerText =
+            questionsData.length;
+
+          const btnReview = document.getElementById("btn-review-start");
+          const btnEndReview = document.getElementById("btn-end-review");
+
+          if (count > 0) {
+            btnReview.disabled = false;
+            btnEndReview.disabled = false;
+          } else {
+            btnReview.disabled = true;
+            btnEndReview.disabled = true;
+          }
+        },
+
+        renderProgress() {
+          const total = this.state.activeIndices.length || questionsData.length;
+          const current = this.state.currentQuestionIndex + 1;
+          const display =
+            this.state.mode === "all" && this.state.activeIndices.length === 0
+              ? "0/0"
+              : `${current}/${total}`;
+
+          document.getElementById("progress-display").innerText = display;
+          document.getElementById("mode-display").innerText =
+            this.state.mode === "all" ? "Pełny zakres" : "Powtórka";
+        },
+
+        shuffleArray(array) {
+          for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+          }
+        },
+      };
+
+      // Initialize app
+      app.init();
+      /* --- LOGIC END --- */
+    </script>
+  </body>
+</html>
