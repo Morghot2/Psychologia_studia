@@ -1,0 +1,3895 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Laboratorium Statystyczne 4.3</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React & ReactDOM (Wersja 18) -->
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+    ></script>
+
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Prop-types -->
+    <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+
+    <!-- Recharts (Wersja 2.5.0) -->
+    <script src="https://unpkg.com/recharts@2.5.0/umd/Recharts.js"></script>
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      .slider-thumb::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        background: #2563eb;
+        cursor: pointer;
+        border-radius: 50%;
+        margin-top: -7px;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        transition: all 0.2s;
+      }
+      .slider-thumb::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.2);
+      }
+
+      /* Stylizacja tabel APA */
+      .apa-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: "Times New Roman", Times, serif;
+        font-size: 0.95rem;
+      }
+      .apa-table th {
+        border-top: 2px solid black;
+        border-bottom: 1px solid black;
+        padding: 8px;
+        text-align: center;
+        font-weight: normal;
+        cursor: help;
+        vertical-align: bottom;
+      }
+      .apa-table td {
+        padding: 8px;
+        text-align: center;
+        border: none;
+        cursor: help;
+      }
+      .apa-table tr:last-child td {
+        border-bottom: 2px solid black;
+      }
+      .apa-table .text-left {
+        text-align: left;
+      }
+      .apa-table td:hover,
+      .apa-table th:hover {
+        background-color: #fef9c3;
+        transition: background-color 0.2s;
+        position: relative;
+        z-index: 10;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50 text-slate-900">
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useMemo, useEffect, useRef } = React;
+      const {
+        AreaChart,
+        Area,
+        BarChart,
+        Bar,
+        LineChart,
+        Line,
+        ScatterChart,
+        Scatter,
+        ComposedChart,
+        XAxis,
+        YAxis,
+        CartesianGrid,
+        Tooltip,
+        ResponsiveContainer,
+        ReferenceLine,
+        ReferenceArea,
+        Cell,
+        ErrorBar,
+      } = window.Recharts;
+
+      // --- IKONY SVG ---
+      const Icons = {
+        Calculator: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <rect width="16" height="20" x="4" y="2" rx="2" />
+            <line x1="8" x2="16" y1="6" y2="6" />
+            <line x1="16" x2="16" y1="14" y2="18" />
+            <path d="M16 10h.01" />
+            <path d="M12 10h.01" />
+            <path d="M8 10h.01" />
+            <path d="M12 14h.01" />
+            <path d="M8 14h.01" />
+            <path d="M12 18h.01" />
+            <path d="M8 18h.01" />
+          </svg>
+        ),
+        TrendingUp: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+            <polyline points="16 7 22 7 22 13" />
+          </svg>
+        ),
+        Target: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="12" r="6" />
+            <circle cx="12" cy="12" r="2" />
+          </svg>
+        ),
+        Activity: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+          </svg>
+        ),
+        GitCommit: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <circle cx="12" cy="12" r="3" />
+            <line x1="3" x2="9" y1="12" y2="12" />
+            <line x1="15" x2="21" y1="12" y2="12" />
+          </svg>
+        ),
+        LayoutGrid: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <rect width="7" height="7" x="3" y="3" rx="1" />
+            <rect width="7" height="7" x="14" y="3" rx="1" />
+            <rect width="7" height="7" x="14" y="14" rx="1" />
+            <rect width="7" height="7" x="3" y="14" rx="1" />
+          </svg>
+        ),
+        BarChart2: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <line x1="18" x2="18" y1="20" y2="10" />
+            <line x1="12" x2="12" y1="20" y2="4" />
+            <line x1="6" x2="6" y1="20" y2="14" />
+          </svg>
+        ),
+        Sigma: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <path d="M18 7V5a1 1 0 0 0-1-1H6.5a.5.5 0 0 0-.4.8l4.5 6a2 2 0 0 1 0 2.4l-4.5 6a.5.5 0 0 0 .4.8H17a1 1 0 0 0 1-1v-2" />
+          </svg>
+        ),
+        Info: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 16v-4" />
+            <path d="M12 8h.01" />
+          </svg>
+        ),
+        Menu: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <line x1="4" x2="20" y1="12" y2="12" />
+            <line x1="4" x2="20" y1="6" y2="6" />
+            <line x1="4" x2="20" y1="18" y2="18" />
+          </svg>
+        ),
+        X: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        ),
+        BoxSelect: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <path d="M5 7h14" />
+            <path d="M5 17h14" />
+            <path d="M12 3v18" />
+          </svg>
+        ),
+        Scale: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <path d="M12 3v18" />
+            <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />
+            <path d="M7 21h10" />
+            <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
+            <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
+          </svg>
+        ),
+        AlertTriangle: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+            <path d="M12 9v4" />
+            <path d="M12 17h.01" />
+          </svg>
+        ),
+        Ruler: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z" />
+            <path d="m14.5 12.5 2-2" />
+            <path d="m11.5 9.5 2-2" />
+            <path d="m8.5 6.5 2-2" />
+            <path d="m17.5 15.5 2-2" />
+          </svg>
+        ),
+        MousePointerClick: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <path d="m9 9 5 12 1.8-5.2L21 14Z" />
+            <path d="M7.2 2.2 8 5.1" />
+            <path d="m5.1 8-2.9-.8" />
+            <path d="M14 4.1 12 6" />
+            <path d="m6 12-1.9 2" />
+          </svg>
+        ),
+        BookOpen: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+          </svg>
+        ),
+        Users: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        ),
+        TrendingUp2: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <path d="M3 3v18h18" />
+            <path d="m19 9-5 5-4-4-3 3" />
+          </svg>
+        ),
+        Mountain: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <path d="m8 3 4 8 5-5 5 15H2L8 3z" />
+          </svg>
+        ),
+        FileText: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" x2="8" y1="13" y2="13" />
+            <line x1="16" x2="8" y1="17" y2="17" />
+            <line x1="10" x2="8" y1="9" y2="9" />
+          </svg>
+        ),
+        Move: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <polyline points="5 9 2 12 5 15" />
+            <polyline points="9 5 12 2 15 5" />
+            <polyline points="15 19 12 22 9 19" />
+            <polyline points="19 15 22 12 19 9" />
+            <line x1="2" x2="22" y1="12" y2="12" />
+            <line x1="12" x2="12" y1="2" y2="22" />
+          </svg>
+        ),
+        Minimize2: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <polyline points="4 14 10 14 10 20" />
+            <polyline points="20 10 14 10 14 4" />
+            <line x1="14" x2="21" y1="10" y2="3" />
+            <line x1="3" x2="10" y1="21" y2="14" />
+          </svg>
+        ),
+        Percent: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <line x1="19" x2="5" y1="5" y2="19" />
+            <circle cx="6.5" cy="6.5" r="2.5" />
+            <circle cx="17.5" cy="17.5" r="2.5" />
+          </svg>
+        ),
+        Zap: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+          </svg>
+        ),
+        AlignCenter: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <line x1="21" x2="3" y1="6" y2="6" />
+            <line x1="17" x2="7" y1="12" y2="12" />
+            <line x1="19" x2="5" y1="18" y2="18" />
+          </svg>
+        ),
+        AlertCircle: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" x2="12" y1="8" y2="12" />
+            <line x1="12" x2="12.01" y1="16" y2="16" />
+          </svg>
+        ),
+        RefreshCcw: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+            <path d="M16 21h5v-5" />
+          </svg>
+        ),
+        Plus: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <path d="M5 12h14" />
+            <path d="M12 5v14" />
+          </svg>
+        ),
+        Trash2: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <path d="M3 6h18" />
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+            <line x1="10" x2="10" y1="11" y2="17" />
+            <line x1="14" x2="14" y1="11" y2="17" />
+          </svg>
+        ),
+        BarChart3: ({ size = 24, className = "" }) => (
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+          >
+            <path d="M3 3v18h18" />
+            <path d="M18 17V9" />
+            <path d="M13 17V5" />
+            <path d="M8 17v-3" />
+          </svg>
+        ),
+      };
+
+      const {
+        Calculator,
+        TrendingUp,
+        Target,
+        Activity,
+        GitCommit,
+        LayoutGrid,
+        BarChart2,
+        Sigma,
+        Info,
+        Menu,
+        X,
+        BoxSelect,
+        Scale,
+        AlertTriangle,
+        Ruler,
+        MousePointerClick,
+        BookOpen,
+        Users,
+        TrendingUp2,
+        Mountain,
+        FileText,
+        Move,
+        Minimize2,
+        Percent,
+        Zap,
+        AlignCenter,
+        AlertCircle,
+        RefreshCcw,
+        Plus,
+        Trash2,
+        BarChart3,
+      } = Icons;
+
+      // --- MATEMATYKA ---
+      function gamma(z) {
+        if (z < 0.5) return Math.PI / (Math.sin(Math.PI * z) * gamma(1 - z));
+        z -= 1;
+        var x = 0.99999999999980993;
+        var p = [
+          676.5203681218851, -1259.1392167224028, 771.32342877765313,
+          -176.61502916214059, 12.507343278686905, -0.13857109526572012,
+          9.9843695780195716e-6, 1.5056327351493116e-7,
+        ];
+        for (var i = 0; i < p.length; i++) {
+          x += p[i] / (z + i + 1);
+        }
+        var t = z + p.length - 0.5;
+        return Math.sqrt(2 * Math.PI) * Math.pow(t, z + 0.5) * Math.exp(-t) * x;
+      }
+      const normalPDF = (x, mean, stdDev) =>
+        (1 / (stdDev * Math.sqrt(2 * Math.PI))) *
+        Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2));
+      const ggdPDF = (x, alpha, beta) => {
+        const num = beta;
+        const den = 2 * alpha * gamma(1 / beta);
+        const exp = Math.pow(Math.abs(x) / alpha, beta);
+        return (num / den) * Math.exp(-exp);
+      };
+      const studentTPDF = (x, df) => {
+        try {
+          const num = gamma((df + 1) / 2);
+          const den = Math.sqrt(df * Math.PI) * gamma(df / 2);
+          return (num / den) * Math.pow(1 + (x * x) / df, -((df + 1) / 2));
+        } catch (e) {
+          return 0;
+        }
+      };
+      const factorial = (n) => (n <= 1 ? 1 : n * factorial(n - 1));
+      const nCr = (n, r) => factorial(n) / (factorial(r) * factorial(n - r));
+      const binomialPMF = (k, n, p) =>
+        nCr(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
+      const randomNormal = (mean = 0, stdev = 1) => {
+        const u = 1 - Math.random();
+        const v = Math.random();
+        const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+        return z * stdev + mean;
+      };
+      const generateSkewedData = (n, skew, spread) => {
+        const data = [];
+        for (let i = 0; i < n; i++) {
+          let x = randomNormal(0, 1);
+          if (skew !== 0) {
+            x = x + Math.tanh(skew * x) * 0.8;
+          }
+          data.push(x * spread);
+        }
+        return data.sort((a, b) => a - b);
+      };
+      const getPercentile = (data, p) => {
+        const index = Math.floor(p * data.length);
+        return data[index] || 0;
+      };
+
+      // --- POMOCNICZE FUNKCJE DLA NOWYCH MODUŁÓW ---
+      const calculateMean = (data) => {
+        // Obsługa obu struktur danych (tablica liczb dla Tendencji Centralnej i tablica obiektów dla Dyspersji)
+        if (data.length > 0 && typeof data[0] === "object") {
+          return (
+            data.reduce((acc, point) => acc + point.value, 0) / data.length
+          );
+        }
+        if (data.length === 0) return 0;
+        return data.reduce((a, b) => a + b, 0) / data.length;
+      };
+
+      const calculateMedian = (data) => {
+        if (data.length > 0 && typeof data[0] === "object") {
+          const sorted = [...data].sort((a, b) => a.value - b.value);
+          return sorted[Math.floor(sorted.length / 2)].value;
+        }
+        if (data.length === 0) return 0;
+        const sorted = [...data].sort((a, b) => a - b);
+        const mid = Math.floor(sorted.length / 2);
+        if (sorted.length % 2 !== 0) {
+          return sorted[mid];
+        }
+        return (sorted[mid - 1] + sorted[mid]) / 2;
+      };
+
+      const calculateMode = (data) => {
+        if (data.length === 0) return [];
+        const counts = {};
+        let maxFreq = 0;
+        data.forEach((val) => {
+          counts[val] = (counts[val] || 0) + 1;
+          if (counts[val] > maxFreq) maxFreq = counts[val];
+        });
+        if (maxFreq === 1 && data.length > 1) return []; // Jeśli każda jest inna, brak wyraźnej dominanty dla uproszczenia
+        return Object.keys(counts)
+          .filter((key) => counts[key] === maxFreq)
+          .map(Number);
+      };
+
+      const calculateVarianceAndStdDev = (data, mean) => {
+        const variance =
+          data.reduce(
+            (acc, point) => acc + Math.pow(point.value - mean, 2),
+            0
+          ) / data.length;
+        return { variance, stdDev: Math.sqrt(variance) };
+      };
+      const calculateQuartiles = (data) => {
+        const sorted = [...data].sort((a, b) => a.value - b.value);
+        const q1 = sorted[1].value;
+        const q3 = sorted[3].value;
+        return { q1, q3, iqr: q3 - q1 };
+      };
+
+      // --- KOMPONENTY UI ---
+
+      const Card = ({ title, children, className = "" }) => (
+        <div
+          className={`bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col ${className}`}
+        >
+          <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between shrink-0">
+            <h3 className="font-semibold text-slate-800 text-sm uppercase tracking-wide flex items-center gap-2">
+              {title}
+            </h3>
+          </div>
+          <div className="p-5 overflow-y-auto custom-scrollbar">{children}</div>
+        </div>
+      );
+
+      const SliderControl = ({
+        label,
+        value,
+        onChange,
+        min,
+        max,
+        step,
+        suffix = "",
+      }) => (
+        <div className="mb-5 group">
+          <div className="flex justify-between mb-2">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider group-hover:text-blue-600 transition-colors">
+              {label}
+            </label>
+            <span className="text-sm font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 min-w-[3rem] text-center">
+              {typeof value === "number"
+                ? value.toFixed(step < 1 ? 2 : 0)
+                : value}
+              {suffix}
+            </span>
+          </div>
+          <div className="relative h-1.5 w-full bg-slate-200 rounded-full">
+            <div
+              className="absolute h-full bg-blue-500 rounded-full"
+              style={{ width: `${((value - min) / (max - min)) * 100}%` }}
+            ></div>
+            <input
+              type="range"
+              min={min}
+              max={max}
+              step={step}
+              value={value}
+              onChange={(e) => onChange(parseFloat(e.target.value))}
+              className="slider-thumb absolute w-full h-full opacity-0 cursor-pointer z-10 top-0"
+            />
+            <div
+              className="absolute w-4 h-4 bg-white border-2 border-blue-600 rounded-full shadow top-1/2 -translate-y-1/2 -translate-x-1/2 pointer-events-none transition-all"
+              style={{ left: `${((value - min) / (max - min)) * 100}%` }}
+            ></div>
+          </div>
+        </div>
+      );
+
+      const AnalysisPanel = ({ text, type = "info" }) => {
+        const colors = {
+          info: "bg-blue-50 border-blue-100 text-blue-800",
+          warning: "bg-amber-50 border-amber-100 text-amber-800",
+          success: "bg-emerald-50 border-emerald-100 text-emerald-800",
+          error: "bg-red-50 border-red-100 text-red-800",
+        };
+        const colorClass = colors[type] || colors.info;
+        return (
+          <div
+            className={`mt-4 p-4 rounded-lg border text-sm leading-relaxed ${colorClass} transition-all duration-300 animate-in fade-in`}
+          >
+            <div className="flex gap-2">
+              <Info size={18} className="shrink-0 mt-0.5" />
+              <div>{text}</div>
+            </div>
+          </div>
+        );
+      };
+
+      const Definitions = ({ items }) => {
+        const [open, setOpen] = useState(false);
+        return (
+          <div className="mt-4 border-t border-slate-100 pt-3">
+            <button
+              onClick={() => setOpen(!open)}
+              className="flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors w-full"
+            >
+              <BookOpen size={14} /> Słownik Pojęć{" "}
+              {open ? "(Zwiń)" : "(Rozwiń)"}
+            </button>
+            {open && (
+              <div className="mt-2 space-y-2 animate-in slide-in-from-top-2">
+                {items.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="text-xs bg-slate-50 p-2 rounded border border-slate-100"
+                  >
+                    <span className="font-bold text-slate-700 block mb-0.5">
+                      {item.term}:
+                    </span>
+                    <span className="text-slate-600 leading-snug">
+                      {item.def}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      };
+
+      // --- MODUŁY ---
+
+      // 18. MIARY DYSPERSJI
+      const DispersionSimulator = () => {
+        const [points, setPoints] = useState([
+          { id: 1, value: 20 },
+          { id: 2, value: 40 },
+          { id: 3, value: 50 },
+          { id: 4, value: 60 },
+          { id: 5, value: 80 },
+        ]);
+
+        const [activeTab, setActiveTab] = useState("iqr");
+        const [isDragging, setIsDragging] = useState(null);
+        const containerRef = useRef(null);
+
+        const mean = calculateMean(points);
+        const median = calculateMedian(points);
+        const { variance, stdDev } = calculateVarianceAndStdDev(points, mean);
+        const { q1, q3, iqr } = calculateQuartiles(points);
+        const cv = mean === 0 ? 0 : (stdDev / mean) * 100;
+
+        const handleDragStart = (id) => setIsDragging(id);
+
+        const handleDragMove = (e) => {
+          if (isDragging === null || !containerRef.current) return;
+          const rect = containerRef.current.getBoundingClientRect();
+          let clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+          let newValue = ((clientX - rect.left) / rect.width) * 100;
+          newValue = Math.max(0, Math.min(100, newValue));
+          setPoints((prev) =>
+            prev.map((p) =>
+              p.id === isDragging ? { ...p, value: newValue } : p
+            )
+          );
+        };
+
+        useEffect(() => {
+          const handleGlobalUp = () => setIsDragging(null);
+          window.addEventListener("mouseup", handleGlobalUp);
+          window.addEventListener("touchend", handleGlobalUp);
+          return () => {
+            window.removeEventListener("mouseup", handleGlobalUp);
+            window.removeEventListener("touchend", handleGlobalUp);
+          };
+        }, []);
+
+        const getExplanation = () => {
+          if (activeTab === "iqr") {
+            return (
+              <div className="space-y-2">
+                <p className="font-medium text-indigo-700">
+                  Rozstęp Międzykwartylowy (IQR)
+                </p>
+                <p>
+                  To ta{" "}
+                  <span className="text-indigo-600 font-bold px-1 bg-indigo-100 rounded">
+                    fioletowa strefa
+                  </span>
+                  . Obejmuje ona "typowy środek" (środkowe 50% danych).
+                </p>
+                <div className="text-sm bg-indigo-50 p-3 rounded-lg border border-indigo-100 text-slate-700 mt-2">
+                  <strong>Duet: IQR + Mediana</strong>
+                  <p className="mt-1">
+                    W statystyce używamy ich razem, gdy rozkład jest{" "}
+                    <strong>skośny</strong> (np. gdy jedna kropka ucieknie
+                    bardzo mocno w prawo). Średnia wtedy "wariuje", ale Mediana
+                    i IQR zostają stabilne.
+                  </p>
+                  <div className="mt-3 flex gap-2 items-start bg-white/50 p-2 rounded border border-indigo-200">
+                    <Mountain className="text-indigo-500 shrink-0" size={18} />
+                    <p className="text-[11px] leading-snug">
+                      <strong>Wyobraź sobie górę:</strong> IQR to widok z lotu
+                      ptaka na sam masyw góry. Nie interesują Cię
+                      kilkukilometrowe, płaskie nasypy przy gruncie (wartości
+                      skrajne). Patrzysz tylko na to, jak "szeroka" i "potężna"
+                      jest sama góra w swoim centrum.
+                    </p>
+                  </div>
+                  <div className="mt-3 flex gap-2 items-start bg-amber-50 p-2 rounded border border-amber-200">
+                    <AlertCircle
+                      className="text-amber-600 shrink-0"
+                      size={18}
+                    />
+                    <p className="text-[11px] leading-snug text-amber-900">
+                      <strong>Ochrona przed przekłamaniem:</strong> Gdyby góra
+                      miała z jednej strony pionowe urwisko, a z drugiej
+                      ciągnące się kilometrami łagodne podnóże, uśrednianie
+                      wszystkiego (klasyczna średnia) dałoby fałszywy wynik, że
+                      góra jest o połowę niższa i mniej potężna niż w
+                      rzeczywistości. IQR ignoruje te "rozciągnięte boki" przy
+                      gruncie, skupiając się na faktycznym masywie.
+                    </p>
+                  </div>
+                  <p className="mt-2 text-[11px] italic">
+                    To najlepsza miara dyspersji (rozproszenia), gdy masz w
+                    danych wartości skrajne, których nie chcesz brać pod uwagę.
+                  </p>
+                </div>
+                <p className="text-sm text-slate-600">
+                  <strong>A prościej:</strong> Ignorujemy kujonów i leni
+                  (skrajne punkty). Interesuje nas tylko, jak bardzo różnią się
+                  od siebie "zwykli ludzie" w środku stawki.
+                </p>
+              </div>
+            );
+          }
+          if (activeTab === "mean") {
+            return (
+              <div className="space-y-2">
+                <p className="font-medium text-blue-700">Średnia (Mean)</p>
+                <p>
+                  Punkt równowagi (
+                  <span className="text-blue-600 font-bold">
+                    niebieska linia
+                  </span>
+                  ). Działa jak waga szalkowa.
+                </p>
+                <p className="text-sm text-slate-600">
+                  <strong>A prościej:</strong> Gdybyśmy zrzucili się na pizzę po
+                  równo, każdy zapłaciłby właśnie tyle. Przesuń kropkę, a
+                  zobaczysz jak średnia za nią "goni".
+                </p>
+              </div>
+            );
+          }
+          if (activeTab === "variance") {
+            return (
+              <div className="space-y-2">
+                <p className="font-medium text-purple-700">
+                  Wariancja i Odchylenie Standardowe
+                </p>
+                <p>
+                  Wariancja to te kwadraty. Liczymy błędy (odległość od
+                  średniej) i podnosimy je do kwadratu, żeby pozbyć się minusów.
+                </p>
+                <div className="text-sm bg-purple-50 p-3 rounded-lg border border-purple-100 text-slate-700 mt-2">
+                  <strong>Dlaczego to robimy? Wyjaśnienie:</strong>
+                  <ul className="list-disc list-inside mt-2 space-y-2">
+                    <li>
+                      <strong>Pułapka zera:</strong> Gdyby jedna kropka była 10
+                      cm w lewo (-10), a druga 10 cm w prawo (+10), to ich suma
+                      dałaby 0. Wyglądałoby, że nie ma żadnego rozrzutu! Kwadrat
+                      robi z nich liczby dodatnie (100 + 100), więc błąd w końcu
+                      widać.
+                    </li>
+                    <li>
+                      <strong>System kar:</strong> Kwadrat działa jak surowy
+                      sędzia. Mały błąd (np. 2) to mała kara (4), ale duży błąd
+                      (np. 10) to gigantyczna kara (100). To zmusza statystykę
+                      do pokazania, że dane są bardzo niechlujne, gdy tylko
+                      pojawiają się skrajności.
+                    </li>
+                  </ul>
+                </div>
+                <p className="text-sm text-slate-600 mt-2 italic">
+                  <strong>Odchylenie Standardowe</strong> to "odczarowanie"
+                  kwadratów (pierwiastek). Dzięki niemu wracamy do zwykłych
+                  jednostek, które łatwiej zrozumieć.
+                </p>
+              </div>
+            );
+          }
+          return (
+            <div className="space-y-2">
+              <p className="font-medium text-emerald-700">
+                Współczynnik Zmienności (CV)
+              </p>
+              <p>
+                To <strong>miara względna</strong> (podawana w procentach).
+                Dzielimy{" "}
+                <span className="text-red-500 font-bold">Odchylenie</span> przez{" "}
+                <span className="text-blue-600 font-bold">Średnią</span>.
+              </p>
+              <div className="text-sm bg-emerald-50 p-3 rounded-lg border border-emerald-100 text-slate-700 mt-2">
+                <strong>
+                  Największa zaleta CV: Porównywanie nieporównywalnego
+                </strong>
+                <p className="mt-1">
+                  CV pozwala porównać zmienność rzeczy mierzonych w różnych
+                  jednostkach:
+                </p>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>
+                    Czy bardziej zmienny jest <strong>czas reakcji</strong> (w
+                    ms), czy <strong>waga ciała</strong> (w kg)?
+                  </li>
+                  <li>
+                    Czy bardziej "rozchwiana" jest waga <strong>słoni</strong>{" "}
+                    (tony), czy <strong>mrówek</strong> (mg)?
+                  </li>
+                </ul>
+                <p className="mt-2 text-[11px] leading-relaxed">
+                  Dzięki temu, że wynik to procent, nie obchodzi nas jednostka.
+                  Widzisz czysty stopień "roztrzepania".
+                </p>
+              </div>
+              <p className="text-sm text-slate-600 mt-2">
+                <strong>A prościej:</strong> Sam błąd nic nie mówi, jeśli nie
+                wiemy, co mierzymy. 1 cm błędu przy budowie domu to nic, ale
+                przy operacji oka to katastrofa!
+              </p>
+            </div>
+          );
+        };
+
+        return (
+          <div
+            className="h-full bg-slate-50 p-4 font-sans text-slate-800 flex flex-col"
+            onMouseMove={handleDragMove}
+            onTouchMove={handleDragMove}
+          >
+            <div className="w-full bg-white rounded-xl shadow-sm overflow-hidden border border-slate-200 flex flex-col h-full">
+              {/* Usunięto ramkę "Statystyka bez Bólu" */}
+
+              <div className="grid grid-cols-2 md:grid-cols-4 border-b border-slate-200 bg-slate-50 shrink-0">
+                <button
+                  onClick={() => setActiveTab("iqr")}
+                  className={`py-3 px-2 text-xs md:text-sm font-bold uppercase tracking-wide transition-all ${
+                    activeTab === "iqr"
+                      ? "bg-white text-indigo-600 border-b-4 border-indigo-600 shadow-sm"
+                      : "text-slate-500 hover:bg-slate-100"
+                  }`}
+                >
+                  1. Rozstęp Międzykwartylowy
+                </button>
+                <button
+                  onClick={() => setActiveTab("mean")}
+                  className={`py-3 px-2 text-xs md:text-sm font-bold uppercase tracking-wide transition-all ${
+                    activeTab === "mean"
+                      ? "bg-white text-blue-600 border-b-4 border-blue-600 shadow-sm"
+                      : "text-slate-500 hover:bg-slate-100"
+                  }`}
+                >
+                  2. Średnia
+                </button>
+                <button
+                  onClick={() => setActiveTab("variance")}
+                  className={`py-3 px-2 text-xs md:text-sm font-bold uppercase tracking-wide transition-all ${
+                    activeTab === "variance"
+                      ? "bg-white text-purple-600 border-b-4 border-purple-600 shadow-sm"
+                      : "text-slate-500 hover:bg-slate-100"
+                  }`}
+                >
+                  3. Wariancja i Odchylenie
+                </button>
+                <button
+                  onClick={() => setActiveTab("cv")}
+                  className={`py-3 px-2 text-xs md:text-sm font-bold uppercase tracking-wide transition-all ${
+                    activeTab === "cv"
+                      ? "bg-white text-emerald-600 border-b-4 border-emerald-600 shadow-sm"
+                      : "text-slate-500 hover:bg-slate-100"
+                  }`}
+                >
+                  4. Współczynnik Zmienności
+                </button>
+              </div>
+
+              <div className="p-4 md:p-8 relative min-h-[350px] flex flex-col justify-center select-none bg-slate-50/50 shrink-0">
+                <div className="absolute top-4 left-4 right-4 flex justify-between text-xs font-mono text-slate-400 pointer-events-none border-b border-slate-200 pb-2">
+                  <span>0</span>
+                  <span>50</span>
+                  <span>100</span>
+                </div>
+
+                <div className="relative h-40 w-full mt-8" ref={containerRef}>
+                  <div className="absolute top-1/2 left-0 right-0 h-1 bg-slate-300 rounded-full"></div>
+
+                  {activeTab === "iqr" && (
+                    <React.Fragment>
+                      <div
+                        className="absolute top-1/2 -translate-y-1/2 h-16 bg-indigo-200/50 border-2 border-dashed border-indigo-500 rounded-sm transition-all duration-100 pointer-events-none"
+                        style={{ left: `${q1}%`, width: `${iqr}%` }}
+                      >
+                        <div className="absolute -top-6 left-0 text-[10px] text-indigo-600 font-bold uppercase tracking-tighter">
+                          Q1 (25%)
+                        </div>
+                        <div className="absolute -top-6 right-0 text-[10px] text-indigo-600 font-bold uppercase tracking-tighter">
+                          Q3 (75%)
+                        </div>
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs font-bold text-indigo-800 whitespace-nowrap bg-white/80 px-2 py-1 rounded">
+                          IQR: {iqr.toFixed(0)}
+                        </div>
+                      </div>
+                      <div
+                        className="absolute -top-4 bottom-0 w-0.5 bg-indigo-600 z-10 transition-all duration-300 border-l border-indigo-700 border-solid"
+                        style={{ left: `${median}%` }}
+                      >
+                        <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-indigo-700 font-bold text-[10px] bg-indigo-50 px-1 rounded whitespace-nowrap border border-indigo-200">
+                          MEDIANA
+                        </div>
+                      </div>
+                    </React.Fragment>
+                  )}
+
+                  {(activeTab === "mean" ||
+                    activeTab === "variance" ||
+                    activeTab === "cv") && (
+                    <div
+                      className="absolute -top-4 bottom-0 w-0.5 bg-blue-500 z-10 transition-all duration-300 border-l border-blue-500 border-dashed"
+                      style={{ left: `${mean}%` }}
+                    >
+                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-blue-600 font-bold text-xs bg-blue-100 px-1 rounded">
+                        Średnia
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTab === "variance" &&
+                    points.map((p) => {
+                      const distance = Math.abs(p.value - mean);
+                      const isLeft = p.value < mean;
+                      const size = Math.min(distance * 3, 60);
+                      return (
+                        <React.Fragment key={`var-${p.id}`}>
+                          <div
+                            className="absolute top-1/2 h-0.5 bg-purple-500 transition-all duration-75"
+                            style={{
+                              left: isLeft ? `${p.value}%` : `${mean}%`,
+                              width: `${distance}%`,
+                            }}
+                          />
+                          {distance > 2 && (
+                            <div
+                              className="absolute top-1/2 bg-purple-400/20 border border-purple-400/50 transition-all duration-75 pointer-events-none"
+                              style={{
+                                left: isLeft
+                                  ? `calc(${p.value}% + ${distance / 2}% - ${
+                                      size / 2
+                                    }px)`
+                                  : `calc(${mean}% + ${distance / 2}% - ${
+                                      size / 2
+                                    }px)`,
+                                width: `${size}px`,
+                                height: `${size}px`,
+                                transform: "translateY(2px)",
+                              }}
+                            />
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+
+                  {activeTab === "cv" &&
+                    points.map((p) => (
+                      <div
+                        key={`cv-${p.id}`}
+                        className="absolute top-1/2 h-px bg-emerald-400 opacity-50 transition-all duration-75"
+                        style={{
+                          left: p.value < mean ? `${p.value}%` : `${mean}%`,
+                          width: `${Math.abs(p.value - mean)}%`,
+                        }}
+                      />
+                    ))}
+
+                  {points.map((p) => {
+                    let dotColorClass = "bg-slate-400";
+                    if (activeTab === "iqr") {
+                      const sorted = [...points].sort(
+                        (a, b) => a.value - b.value
+                      );
+                      const isInner =
+                        p.value >= sorted[1].value &&
+                        p.value <= sorted[3].value;
+                      dotColorClass = isInner
+                        ? "bg-indigo-600 ring-2 ring-indigo-200"
+                        : "bg-slate-300 opacity-50";
+                    } else if (activeTab === "mean")
+                      dotColorClass = "bg-blue-500";
+                    else if (activeTab === "variance")
+                      dotColorClass = "bg-purple-600";
+                    else if (activeTab === "cv")
+                      dotColorClass = "bg-emerald-500";
+
+                    return (
+                      <div
+                        key={p.id}
+                        onMouseDown={() => handleDragStart(p.id)}
+                        onTouchStart={() => handleDragStart(p.id)}
+                        className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 md:w-8 md:h-8 rounded-full shadow-lg cursor-grab active:cursor-grabbing flex items-center justify-center transition-transform hover:scale-110 z-20 ${dotColorClass}`}
+                        style={{ left: `calc(${p.value}% - 12px)` }}
+                      >
+                        <div className="w-1.5 h-1.5 bg-white rounded-full opacity-50" />
+                        {isDragging === p.id && (
+                          <div className="absolute -top-10 bg-slate-800 text-white text-xs px-2 py-1 rounded">
+                            {p.value.toFixed(0)}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="bg-white p-6 border-t border-slate-200 overflow-y-auto grow">
+                <div className="grid md:grid-cols-2 gap-8 h-full">
+                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 flex gap-4 h-fit">
+                    <div className="mt-1">
+                      <Info className="text-slate-400" size={24} />
+                    </div>
+                    <div className="text-slate-700 leading-relaxed text-sm md:text-base">
+                      {getExplanation()}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div
+                      className={`flex justify-between items-center p-3 rounded-lg transition-colors ${
+                        activeTab === "iqr"
+                          ? "bg-indigo-50 border border-indigo-100 ring-2 ring-indigo-500/20"
+                          : "opacity-60"
+                      }`}
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold uppercase text-slate-500">
+                          Mediana & IQR
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          Stabilny masyw
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-bold text-indigo-400">
+                          Med: {median.toFixed(0)}
+                        </div>
+                        <div className="text-2xl font-mono font-bold text-indigo-700">
+                          {iqr.toFixed(1)}
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      className={`flex justify-between items-center p-3 rounded-lg transition-colors ${
+                        activeTab === "variance"
+                          ? "bg-purple-50 border border-purple-100"
+                          : "opacity-60"
+                      }`}
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold uppercase text-slate-500">
+                          Wariancja
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          Średnia pól błędów
+                        </span>
+                      </div>
+                      <div className="text-2xl font-mono font-bold text-purple-700">
+                        {variance.toFixed(0)}
+                      </div>
+                    </div>
+                    <div
+                      className={`flex justify-between items-center p-3 rounded-lg transition-colors ${
+                        activeTab === "variance"
+                          ? "bg-purple-100 border border-purple-200"
+                          : "opacity-60"
+                      }`}
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold uppercase text-slate-500">
+                          Odchylenie Standardowe
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          Typowy błąd
+                        </span>
+                      </div>
+                      <div className="text-2xl font-mono font-bold text-purple-900">
+                        {stdDev.toFixed(2)}
+                      </div>
+                    </div>
+                    <div
+                      className={`flex justify-between items-center p-3 rounded-lg transition-colors ${
+                        activeTab === "cv"
+                          ? "bg-emerald-50 border border-emerald-100 ring-2 ring-emerald-500/20 shadow-sm"
+                          : "opacity-60"
+                      }`}
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold uppercase text-slate-500">
+                          Współczynnik Zmienności
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          Zmienność względna
+                        </span>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-mono font-bold text-emerald-700">
+                          {cv.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      // 19. MIARY TENDENCJI CENTRALNEJ (NOWY MODUŁ - KOD UŻYTKOWNIKA)
+      const CentralTendencySimulator = () => {
+        const [dataPoints, setDataPoints] = useState([2, 4, 4, 7, 9]);
+        const [hoveredConcept, setHoveredConcept] = useState(null);
+
+        const mean = useMemo(() => calculateMean(dataPoints), [dataPoints]);
+        const median = useMemo(() => calculateMedian(dataPoints), [dataPoints]);
+        const mode = useMemo(() => calculateMode(dataPoints), [dataPoints]);
+
+        const handleValueChange = (index, newValue) => {
+          const newData = [...dataPoints];
+          newData[index] = parseInt(newValue);
+          setDataPoints(newData);
+        };
+
+        const addNewPoint = () => {
+          if (dataPoints.length < 12) {
+            setDataPoints([...dataPoints, 5]);
+          }
+        };
+
+        const removePoint = (index) => {
+          if (dataPoints.length > 2) {
+            const newData = dataPoints.filter((_, i) => i !== index);
+            setDataPoints(newData);
+          }
+        };
+
+        const resetData = () => setDataPoints([2, 4, 4, 7, 9]);
+
+        const COLORS = {
+          mean: "bg-blue-500",
+          meanText: "text-blue-600",
+          meanBorder: "border-blue-500",
+          meanLight: "bg-blue-100",
+          median: "bg-green-500",
+          medianText: "text-green-600",
+          medianBorder: "border-green-500",
+          medianLight: "bg-green-100",
+          mode: "bg-purple-500",
+          modeText: "text-purple-600",
+          modeBorder: "border-purple-500",
+          modeLight: "bg-purple-100",
+        };
+
+        return (
+          <div className="h-full bg-slate-50 p-4 md:p-8 font-sans text-slate-800 flex flex-col overflow-y-auto">
+            <header className="max-w-4xl mx-auto mb-8 text-center shrink-0">
+              <p className="text-slate-600 text-lg">
+                Przesuwaj liczby i obserwuj co się dzieje!
+              </p>
+            </header>
+
+            <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 grow">
+              {/* KOLUMNA 1 */}
+              <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold flex items-center gap-2">
+                    <Calculator className="w-5 h-5 text-indigo-500" /> Twoje
+                    Liczby
+                  </h2>
+                  <button
+                    onClick={resetData}
+                    className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                    title="Resetuj"
+                  >
+                    <RefreshCcw className="w-4 h-4 text-slate-500" />
+                  </button>
+                </div>
+                <div className="space-y-4 mb-6">
+                  {dataPoints.map((value, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 group animate-in slide-in-from-left duration-300"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      <span className="font-mono font-bold w-6 text-slate-400 text-sm">
+                        #{index + 1}
+                      </span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="10"
+                        step="1"
+                        value={value}
+                        onChange={(e) =>
+                          handleValueChange(index, e.target.value)
+                        }
+                        className="flex-grow h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 hover:accent-indigo-500"
+                      />
+                      <div className="w-8 text-center font-bold text-lg bg-slate-100 rounded border border-slate-300">
+                        {value}
+                      </div>
+                      <button
+                        onClick={() => removePoint(index)}
+                        className="text-slate-300 hover:text-red-500 transition-colors disabled:opacity-0"
+                        disabled={dataPoints.length <= 2}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={addNewPoint}
+                  disabled={dataPoints.length >= 12}
+                  className="w-full py-3 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 font-medium hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all flex justify-center items-center gap-2"
+                >
+                  <Plus className="w-5 h-5" /> Dodaj kolejną liczbę
+                </button>
+                <div className="mt-4 text-sm text-slate-400 text-center">
+                  Przesuwaj suwaki, aby zmieniać wartości od 0 do 10.
+                </div>
+              </div>
+
+              {/* KOLUMNA 2 */}
+              <div className="lg:col-span-2 space-y-6">
+                <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-200 relative overflow-hidden min-h-[350px] flex flex-col justify-end">
+                  <h3 className="absolute top-4 left-6 text-sm font-bold text-slate-400 uppercase tracking-wider">
+                    Wizualizacja Rozkładu
+                  </h3>
+                  <div className="absolute top-4 right-6 flex flex-col gap-2 text-sm font-medium">
+                    <div
+                      className={`flex items-center gap-2 px-3 py-1 rounded-full cursor-pointer transition-all ${
+                        hoveredConcept === "mean"
+                          ? "ring-2 ring-blue-400 bg-blue-50"
+                          : ""
+                      }`}
+                      onMouseEnter={() => setHoveredConcept("mean")}
+                      onMouseLeave={() => setHoveredConcept(null)}
+                    >
+                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>{" "}
+                      Średnia
+                    </div>
+                    <div
+                      className={`flex items-center gap-2 px-3 py-1 rounded-full cursor-pointer transition-all ${
+                        hoveredConcept === "median"
+                          ? "ring-2 ring-green-400 bg-green-50"
+                          : ""
+                      }`}
+                      onMouseEnter={() => setHoveredConcept("median")}
+                      onMouseLeave={() => setHoveredConcept(null)}
+                    >
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>{" "}
+                      Mediana
+                    </div>
+                    <div
+                      className={`flex items-center gap-2 px-3 py-1 rounded-full cursor-pointer transition-all ${
+                        hoveredConcept === "mode"
+                          ? "ring-2 ring-purple-400 bg-purple-50"
+                          : ""
+                      }`}
+                      onMouseEnter={() => setHoveredConcept("mode")}
+                      onMouseLeave={() => setHoveredConcept(null)}
+                    >
+                      <div className="w-3 h-3 rounded-full bg-purple-500"></div>{" "}
+                      Dominanta (moda)
+                    </div>
+                  </div>
+
+                  <div className="relative h-64 w-full mt-10">
+                    {Array.from({ length: 11 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="absolute bottom-0 top-0 border-r border-slate-100"
+                        style={{ left: `${i * 10}%` }}
+                      >
+                        <span className="absolute -bottom-6 -translate-x-1/2 text-slate-400 text-sm font-bold">
+                          {i}
+                        </span>
+                      </div>
+                    ))}
+
+                    {dataPoints.map((val, idx) => {
+                      const sameValuePoints = dataPoints.filter(
+                        (v, i) => i < idx && v === val
+                      ).length;
+                      const isMode = mode.includes(val);
+                      return (
+                        <div
+                          key={idx}
+                          className={`absolute w-6 h-6 md:w-8 md:h-8 rounded-full border-2 shadow-sm transition-all duration-500 ease-out flex items-center justify-center text-xs font-bold text-white ${
+                            isMode &&
+                            (hoveredConcept === "mode" ||
+                              hoveredConcept === null)
+                              ? "bg-purple-500 border-purple-600 scale-110 z-20"
+                              : "bg-slate-300 border-slate-400"
+                          }`}
+                          style={{
+                            left: `calc(${val * 10}% - 12px)`,
+                            bottom: `${sameValuePoints * 36 + 10}px`,
+                          }}
+                        ></div>
+                      );
+                    })}
+
+                    <div
+                      className={`absolute bottom-0 top-0 w-1 bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)] transition-all duration-500 z-10 ${
+                        hoveredConcept && hoveredConcept !== "mean"
+                          ? "opacity-20"
+                          : "opacity-100"
+                      }`}
+                      style={{ left: `${mean * 10}%` }}
+                    >
+                      <div className="absolute -top-8 -translate-x-1/2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
+                        Średnia: {mean.toFixed(1)}
+                      </div>
+                    </div>
+
+                    <div
+                      className={`absolute bottom-0 top-0 w-1 border-l-4 border-dotted border-green-500 transition-all duration-500 z-10 ${
+                        hoveredConcept && hoveredConcept !== "median"
+                          ? "opacity-20"
+                          : "opacity-100"
+                      }`}
+                      style={{ left: `${median * 10}%` }}
+                    >
+                      <div className="absolute top-0 -translate-x-1/2 bg-green-500 text-white px-2 py-1 rounded text-xs font-bold whitespace-nowrap mt-8">
+                        Mediana: {median}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="w-full border-t-2 border-slate-300 mt-2 mb-6"></div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div
+                    className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                      hoveredConcept === "mean"
+                        ? "scale-105 shadow-md " + COLORS.meanBorder
+                        : "border-transparent bg-white shadow-sm hover:shadow-md"
+                    }`}
+                    onMouseEnter={() => setHoveredConcept("mean")}
+                    onMouseLeave={() => setHoveredConcept(null)}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className={`p-2 rounded-lg ${COLORS.meanLight}`}>
+                        <BarChart3 className={`w-5 h-5 ${COLORS.meanText}`} />
+                      </div>
+                      <h3 className="font-bold text-lg text-slate-700">
+                        Średnia
+                      </h3>
+                    </div>
+                    <div
+                      className={`text-3xl font-black ${COLORS.meanText} mb-2`}
+                    >
+                      {mean.toFixed(2)}
+                    </div>
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      <strong>To "Sprawiedliwy podział".</strong> Wyobraź sobie,
+                      że liczby to cukierki. Wrzucamy wszystkie do jednego worka
+                      i dzielimy po równo na każdego uczestnika.
+                    </p>
+                    <div className="mt-2 text-xs text-slate-400 bg-slate-50 p-2 rounded">
+                      Suma ({dataPoints.reduce((a, b) => a + b, 0)}) ÷ Ilość (
+                      {dataPoints.length})
+                    </div>
+                  </div>
+
+                  <div
+                    className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                      hoveredConcept === "median"
+                        ? "scale-105 shadow-md " + COLORS.medianBorder
+                        : "border-transparent bg-white shadow-sm hover:shadow-md"
+                    }`}
+                    onMouseEnter={() => setHoveredConcept("median")}
+                    onMouseLeave={() => setHoveredConcept(null)}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className={`p-2 rounded-lg ${COLORS.medianLight}`}>
+                        <AlignCenter
+                          className={`w-5 h-5 ${COLORS.medianText}`}
+                        />
+                      </div>
+                      <h3 className="font-bold text-lg text-slate-700">
+                        Mediana
+                      </h3>
+                    </div>
+                    <div
+                      className={`text-3xl font-black ${COLORS.medianText} mb-2`}
+                    >
+                      {median}
+                    </div>
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      <strong>To "Środek kolejki".</strong> Ustawiamy liczby od
+                      najmniejszej do największej. Mediana to ta, która stoi
+                      dokładnie pośrodku.
+                    </p>
+                    <div className="mt-2 text-xs text-slate-400 bg-slate-50 p-2 rounded overflow-hidden text-ellipsis whitespace-nowrap">
+                      Posortowane:{" "}
+                      {dataPoints
+                        .slice()
+                        .sort((a, b) => a - b)
+                        .join(", ")}
+                    </div>
+                  </div>
+
+                  <div
+                    className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                      hoveredConcept === "mode"
+                        ? "scale-105 shadow-md " + COLORS.modeBorder
+                        : "border-transparent bg-white shadow-sm hover:shadow-md"
+                    }`}
+                    onMouseEnter={() => setHoveredConcept("mode")}
+                    onMouseLeave={() => setHoveredConcept(null)}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className={`p-2 rounded-lg ${COLORS.modeLight}`}>
+                        <Info className={`w-5 h-5 ${COLORS.modeText}`} />
+                      </div>
+                      <h3 className="font-bold text-lg text-slate-700">
+                        Dominanta (moda)
+                      </h3>
+                    </div>
+                    <div
+                      className={`text-3xl font-black ${COLORS.modeText} mb-2`}
+                    >
+                      {mode.length > 0 ? (
+                        mode.join(", ")
+                      ) : (
+                        <span className="text-lg text-slate-400">Brak</span>
+                      )}
+                    </div>
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      <strong>To "Celebryta".</strong> Liczba, która pojawia się
+                      najczęściej. Na wykresie to najwyższa wieża z kulek.
+                    </p>
+                    <div className="mt-2 text-xs text-slate-400 bg-slate-50 p-2 rounded">
+                      Najwyższy słupek na wykresie.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="max-w-4xl mx-auto mt-12 bg-indigo-50 p-6 rounded-2xl border border-indigo-100 text-center shrink-0">
+              <h3 className="font-bold text-indigo-900 text-lg mb-2">
+                💡 Spróbuj tego:
+              </h3>
+              <ul className="text-indigo-800 text-sm md:text-base space-y-2">
+                <li>
+                  👉 Przesuń jedną liczbę bardzo daleko w prawo (zrób tzw.
+                  "odstający element"). Zobacz, jak <strong>średnia</strong>{" "}
+                  gwałtownie ucieka, a <strong>mediana</strong> ledwo się rusza!
+                </li>
+                <li>
+                  👉 Ustaw wszystkie liczby na tę samą wartość. Średnia, mediana
+                  i dominanta będą takie same.
+                </li>
+                <li>
+                  👉 Zrób dwie "wieże" o równej wysokości. Zobaczysz, że mogą
+                  być dwie dominanty!
+                </li>
+              </ul>
+            </div>
+          </div>
+        );
+      };
+
+      // 1. SKOŚNOŚĆ
+      const SkewnessSimulator = () => {
+        const [skew, setSkew] = useState(0);
+        const data = useMemo(() => {
+          const points = [];
+          let sumFx = 0,
+            sum = 0,
+            maxDensity = 0,
+            modeX = 0;
+          for (let x = -5; x <= 5; x += 0.1) {
+            const base = normalPDF(x, 0, 1.5);
+            const weight = 1 + Math.tanh(skew * x);
+            const density = base * weight;
+            if (density > maxDensity) {
+              maxDensity = density;
+              modeX = x;
+            }
+            points.push({ x: parseFloat(x.toFixed(1)), y: density });
+            sum += density;
+            sumFx += x * density;
+          }
+          const mean = sumFx / sum;
+          let currentSum = 0,
+            median = 0;
+          for (let i = 0; i < points.length; i++) {
+            currentSum += points[i].y;
+            if (currentSum >= sum / 2) {
+              median = points[i].x;
+              break;
+            }
+          }
+          return { points, mean, median, mode: modeX };
+        }, [skew]);
+
+        const analysisText = useMemo(() => {
+          if (Math.abs(skew) < 0.1)
+            return "Rozkład symetryczny. Średnia ≈ Mediana ≈ Dominanta.";
+          if (skew > 0)
+            return "Skośność dodatnia (prawostronna). Ogon ciągnie się w PRAWO (w stronę wysokich wyników). Średnia jest wyższa od mediany, bo 'goni' za wysokimi wynikami.";
+          return "Skośność ujemna (lewostronna). Ogon ciągnie się w LEWO (w stronę niskich wyników). Średnia jest niższa od mediany, bo niskie wyniki ją zaniżają.";
+        }, [skew]);
+
+        // Visual logic
+        const panelType =
+          skew > 0.1 ? "success" : skew < -0.1 ? "error" : "info";
+
+        return (
+          <div className="flex flex-col lg:flex-row gap-6 h-full">
+            <div className="w-full lg:w-2/3 h-64 md:h-96 bg-white rounded-xl border border-slate-200 p-2 shadow-sm">
+              <ResponsiveContainer>
+                <AreaChart data={data.points}>
+                  <defs>
+                    <linearGradient id="colorSkew" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <Area
+                    type="monotone"
+                    dataKey="y"
+                    stroke="#3b82f6"
+                    fill="url(#colorSkew)"
+                    fillOpacity={0.3}
+                  />
+                  <ReferenceLine
+                    x={data.mean}
+                    stroke="#ef4444"
+                    label={{
+                      position: "top",
+                      value: "Średnia",
+                      fill: "#ef4444",
+                      fontSize: 10,
+                    }}
+                  />
+                  <ReferenceLine
+                    x={data.median}
+                    stroke="#10b981"
+                    label={{
+                      position: "top",
+                      value: "Mediana",
+                      fill: "#10b981",
+                      fontSize: 10,
+                    }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <Card title="Panel Analityczny" className="w-full lg:w-1/3">
+              <SliderControl
+                label="Skośność"
+                value={skew}
+                min={-1}
+                max={1}
+                step={0.1}
+                onChange={setSkew}
+              />
+              <AnalysisPanel
+                text={
+                  <span>
+                    <strong>Co to znaczy po ludzku?</strong>
+                    <br />
+                    {analysisText}
+                  </span>
+                }
+                type={panelType}
+              />
+              <Definitions
+                items={[
+                  {
+                    term: "Skośność (Skewness)",
+                    def: "Miara asymetrii rozkładu. Dodatnia = ogon w prawo, Ujemna = ogon w lewo.",
+                  },
+                  {
+                    term: "Średnia",
+                    def: "Środek ciężkości rozkładu, wrażliwy na wartości skrajne.",
+                  },
+                  {
+                    term: "Mediana",
+                    def: "Wartość środkowa, dzieli próbę na pół. Odporna na outliery.",
+                  },
+                ]}
+              />
+            </Card>
+          </div>
+        );
+      };
+
+      // 2. HIPOTEZY
+      const HypothesisSimulator = () => {
+        const [meanDiff, setMeanDiff] = useState(2);
+        const [alpha, setAlpha] = useState(0.05);
+        const stdDev = 1.5;
+        const criticalValue =
+          alpha <= 0.01
+            ? 2.33
+            : alpha <= 0.025
+            ? 1.96
+            : alpha <= 0.05
+            ? 1.645
+            : 1.28;
+        const criticalX = criticalValue * stdDev;
+        const data = useMemo(() => {
+          const pts = [];
+          for (let x = -4; x <= 8; x += 0.1)
+            pts.push({
+              x,
+              h0: normalPDF(x, 0, stdDev),
+              h1: normalPDF(x, meanDiff, stdDev),
+            });
+          return pts;
+        }, [meanDiff]);
+        const analysisText = `Wartość krytyczna to granica decyzyjna (tu: ${criticalX.toFixed(
+          2
+        )}). Czerwone pole po prawej to "strefa odrzucenia H0". Jeśli wynik naszego badania tam wpadnie, uznajemy go za "istotny statystycznie".`;
+
+        return (
+          <div className="flex flex-col lg:flex-row gap-6 h-full">
+            <div className="w-full lg:w-2/3 h-64 md:h-96 bg-white rounded-xl border border-slate-200 p-2 shadow-sm">
+              <ResponsiveContainer>
+                <AreaChart data={data}>
+                  <XAxis type="number" dataKey="x" domain={[-4, 8]} hide />
+                  <Area
+                    type="monotone"
+                    dataKey="h0"
+                    stroke="#94a3b8"
+                    fill="#94a3b8"
+                    fillOpacity={0.3}
+                    name="Hipoteza Zerowa"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="h1"
+                    stroke="#3b82f6"
+                    fill="#3b82f6"
+                    fillOpacity={0.3}
+                    name="Hipoteza Alternatywna"
+                  />
+                  <ReferenceLine
+                    x={criticalX}
+                    stroke="#ef4444"
+                    label={{
+                      value: "Granica",
+                      fill: "#ef4444",
+                      fontSize: 10,
+                      position: "top",
+                    }}
+                  />
+                  <ReferenceArea
+                    x1={criticalX}
+                    x2={8}
+                    fill="#ef4444"
+                    fillOpacity={0.2}
+                    label={{
+                      value: "Obszar Odrzucenia H0",
+                      fill: "#991b1b",
+                      fontSize: 12,
+                      position: "insideTopRight",
+                    }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <Card title="Test Hipotez" className="w-full lg:w-1/3">
+              <SliderControl
+                label="Efekt (Różnica)"
+                value={meanDiff}
+                min={0}
+                max={5}
+                step={0.2}
+                onChange={setMeanDiff}
+              />
+              <SliderControl
+                label="Alfa (α)"
+                value={alpha}
+                min={0.01}
+                max={0.1}
+                step={0.01}
+                onChange={setAlpha}
+              />
+              <AnalysisPanel text={analysisText} type="info" />
+              <Definitions
+                items={[
+                  {
+                    term: "Hipoteza Zerowa (H0)",
+                    def: "Założenie o braku efektu/różnic (np. lek nie działa).",
+                  },
+                  {
+                    term: "Alfa (α)",
+                    def: "Poziom istotności. Ryzyko odrzucenia prawdziwej H0 (Błąd I rodzaju).",
+                  },
+                  {
+                    term: "Obszar krytyczny",
+                    def: "Zbiór wyników tak skrajnych, że ich wystąpienie przy założeniu prawdziwości H0 jest mało prawdopodobne.",
+                  },
+                ]}
+              />
+            </Card>
+          </div>
+        );
+      };
+
+      // 3. CTG
+      const CLTSimulator = () => {
+        const [n, setN] = useState(5);
+        const [k, setK] = useState(500);
+        const [chartData, setChartData] = useState([]);
+        useEffect(() => {
+          const bins = Array(20).fill(0);
+          for (let i = 0; i < k; i++) {
+            let sum = 0;
+            for (let j = 0; j < n; j++) sum += Math.random();
+            bins[Math.min(Math.floor((sum / n) * 20), 19)]++;
+          }
+          setChartData(bins.map((c, i) => ({ x: (i / 20).toFixed(2), c })));
+        }, [n, k]);
+
+        return (
+          <div className="flex flex-col lg:flex-row gap-6 h-full">
+            <div className="w-full lg:w-2/3 h-64 md:h-96 bg-white rounded-xl border border-slate-200 p-2 shadow-sm">
+              <ResponsiveContainer>
+                <BarChart data={chartData}>
+                  <Bar dataKey="c" fill="#8b5cf6" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <Card
+              title="Centralne Twierdzenie Graniczne"
+              className="w-full lg:w-1/3"
+            >
+              <SliderControl
+                label="Wielkość Próby (n)"
+                value={n}
+                min={1}
+                max={30}
+                step={1}
+                onChange={setN}
+              />
+              <SliderControl
+                label="Liczba Próbek (k)"
+                value={k}
+                min={100}
+                max={2000}
+                step={100}
+                onChange={setK}
+              />
+              <AnalysisPanel
+                text={
+                  n < 5
+                    ? "Dla małych n (np. 2-5) wykres jest 'kanciasty'. To nie wygląda jeszcze jak dzwon."
+                    : "Dla n>30 działa 'magia' statystyki: nawet jeśli badamy rzut kostką (rozkład płaski), średnie z wielu rzutów utworzą idealną Krzywą Gaussa!"
+                }
+                type="success"
+              />
+              <Definitions
+                items={[
+                  {
+                    term: "CTG",
+                    def: "Twierdzenie mówiące, że suma/średnia wielu zmiennych losowych ma rozkład zbliżony do normalnego.",
+                  },
+                  {
+                    term: "Rozkład z próby",
+                    def: "Rozkład statystyki (np. średniej) obliczonej z wielu losowych próbek.",
+                  },
+                ]}
+              />
+            </Card>
+          </div>
+        );
+      };
+
+      // 4. WIELKIE LICZBY
+      const LLNSimulator = () => {
+        const [trials, setTrials] = useState(100);
+        const [data, setData] = useState([]);
+        useEffect(() => {
+          let h = 0;
+          const d = [];
+          for (let i = 1; i <= trials; i++) {
+            if (Math.random() < 0.5) h++;
+            d.push({ i, f: h / i, t: 0.5 });
+          }
+          setData(d);
+        }, [trials]);
+
+        return (
+          <div className="flex flex-col lg:flex-row gap-6 h-full">
+            <div className="w-full lg:w-2/3 h-64 md:h-96 bg-white rounded-xl border border-slate-200 p-2 shadow-sm">
+              <ResponsiveContainer>
+                <LineChart data={data}>
+                  <Line
+                    type="monotone"
+                    dataKey="f"
+                    stroke="#2563eb"
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="t"
+                    stroke="#ef4444"
+                    strokeDasharray="5 5"
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            <Card title="Prawo Wielkich Liczb" className="w-full lg:w-1/3">
+              <SliderControl
+                label="Liczba Rzutów"
+                value={trials}
+                min={10}
+                max={1000}
+                step={10}
+                onChange={setTrials}
+              />
+              <AnalysisPanel
+                text="Na początku wykres szaleje (przypadek rządzi). Ale im więcej rzutów (w prawo na osi), tym linia niebieska mocniej 'przykleja się' do czerwonej (teorii). To znaczy, że im większa próba, tym dokładniejszy wynik."
+                type="info"
+              />
+              <Definitions
+                items={[
+                  {
+                    term: "Prawo Wielkich Liczb",
+                    def: "Zasada mówiąca, że przy dużej liczbie prób średnia empiryczna dąży do wartości oczekiwanej.",
+                  },
+                  {
+                    term: "Stabilizacja częstości",
+                    def: "Zjawisko zmniejszania się wahań losowych wraz ze wzrostem liczby obserwacji.",
+                  },
+                ]}
+              />
+            </Card>
+          </div>
+        );
+      };
+
+      // 5. PRZEDZIAŁY UFNOŚCI
+      const CISimulator = () => {
+        const [conf, setConf] = useState(95);
+        const [n, setN] = useState(20);
+        const intervals = useMemo(() => {
+          const arr = [];
+          const z = conf === 90 ? 1.645 : conf === 95 ? 1.96 : 2.576;
+          for (let i = 0; i < 20; i++) {
+            const m = randomNormal(100, 15 / Math.sqrt(n));
+            const d = z * (15 / Math.sqrt(n));
+            arr.push({
+              min: m - d,
+              max: m + d,
+              m,
+              ok: m - d <= 100 && m + d >= 100,
+            });
+          }
+          return arr;
+        }, [conf, n]);
+
+        return (
+          <div className="flex flex-col lg:flex-row gap-6 h-full">
+            <div className="w-full lg:w-2/3 h-64 md:h-96 bg-white rounded-xl border border-slate-200 p-2 shadow-sm">
+              <ResponsiveContainer>
+                <BarChart data={intervals} layout="vertical">
+                  <XAxis type="number" domain={[80, 120]} />
+                  <Bar dataKey="min" fill="transparent" stackId="a" />
+                  <Bar dataKey="m" stackId="a" fill="transparent">
+                    <ErrorBar dataKey="max" />
+                  </Bar>
+                  {intervals.map((d, i) => (
+                    <ReferenceLine
+                      key={i}
+                      segment={[
+                        { x: d.min, y: i },
+                        { x: d.max, y: i },
+                      ]}
+                      stroke={d.ok ? "#10b981" : "#ef4444"}
+                    />
+                  ))}
+                  <ReferenceLine x={100} stroke="#000" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <Card title="Estymacja Przedziałowa" className="w-full lg:w-1/3">
+              <SliderControl
+                label="Poziom Ufności"
+                value={conf}
+                min={90}
+                max={99}
+                step={5}
+                onChange={setConf}
+              />
+              <SliderControl
+                label="Próba (n)"
+                value={n}
+                min={10}
+                max={100}
+                step={10}
+                onChange={setN}
+              />
+              <AnalysisPanel
+                text="Każda pozioma kreska to jeden eksperyment. Zielone 'złapały' prawdziwą średnią (pionowa linia). Czerwone to 'pechowe' badania, które dały błędny wynik. Im wyższy poziom ufności, tym szersze (bezpieczniejsze) przedziały."
+                type="info"
+              />
+              <Definitions
+                items={[
+                  {
+                    term: "Przedział Ufności (CI)",
+                    def: "Zakres, który z określonym prawdopodobieństwem (np. 95%) zawiera nieznany parametr populacji.",
+                  },
+                  {
+                    term: "Precyzja estymacji",
+                    def: "Im węższy przedział, tym wyższa precyzja. Zależy od wielkości próby (n).",
+                  },
+                ]}
+              />
+            </Card>
+          </div>
+        );
+      };
+
+      // 6. KORELACJA
+      const CorrelationSimulator = () => {
+        const [r, setR] = useState(0.7);
+        const data = useMemo(() => {
+          const arr = [];
+          for (let i = 0; i < 100; i++) {
+            const x = randomNormal(0, 1);
+            const y = r * x + Math.sqrt(1 - r * r) * randomNormal(0, 1);
+            arr.push({ x, y });
+          }
+          return arr;
+        }, [r]);
+
+        const analysisText =
+          r > 0.1
+            ? "Związek dodatni: Im więcej X, tym WIĘCEJ Y."
+            : r < -0.1
+            ? "Związek ujemny: Im więcej X, tym MNIEJ Y."
+            : "Brak związku: Chmura punktów bez kształtu.";
+        const panelType = r > 0.1 ? "success" : r < -0.1 ? "error" : "info";
+
+        return (
+          <div className="flex flex-col lg:flex-row gap-6 h-full">
+            <div className="w-full lg:w-2/3 h-64 md:h-96 bg-white rounded-xl border border-slate-200 p-2 shadow-sm">
+              <ResponsiveContainer>
+                <ScatterChart>
+                  <XAxis type="number" dataKey="x" />
+                  <YAxis type="number" dataKey="y" />
+                  <Scatter data={data} fill="#8884d8" />
+                </ScatterChart>
+              </ResponsiveContainer>
+            </div>
+            <Card title="Korelacja Pearsona" className="w-full lg:w-1/3">
+              <SliderControl
+                label="Współczynnik r"
+                value={r}
+                min={-0.95}
+                max={0.95}
+                step={0.05}
+                onChange={setR}
+              />
+              <AnalysisPanel text={analysisText} type={panelType} />
+              <Definitions
+                items={[
+                  {
+                    term: "Korelacja (r)",
+                    def: "Miara siły i kierunku związku liniowego między dwiema zmiennymi (-1 do +1).",
+                  },
+                  {
+                    term: "Wykres rozrzutu",
+                    def: "Graficzna reprezentacja par wyników (X, Y) dla każdego badanego.",
+                  },
+                ]}
+              />
+            </Card>
+          </div>
+        );
+      };
+
+      // 7. DWUMIANOWY
+      const BinomialSimulator = () => {
+        const [n, setN] = useState(10);
+        const [p, setP] = useState(0.5);
+        const data = useMemo(() => {
+          const arr = [];
+          for (let k = 0; k <= n; k++) arr.push({ k, v: binomialPMF(k, n, p) });
+          return arr;
+        }, [n, p]);
+
+        return (
+          <div className="flex flex-col lg:flex-row gap-6 h-full">
+            <div className="w-full lg:w-2/3 h-64 md:h-96 bg-white rounded-xl border border-slate-200 p-2 shadow-sm">
+              <ResponsiveContainer>
+                <BarChart data={data}>
+                  <Bar dataKey="v" fill="#0ea5e9" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <Card title="Rozkład Bernoulliego" className="w-full lg:w-1/3">
+              <SliderControl
+                label="Liczba Prób (n)"
+                value={n}
+                min={5}
+                max={40}
+                step={1}
+                onChange={setN}
+              />
+              <SliderControl
+                label="Prawdopodobieństwo (p)"
+                value={p}
+                min={0.1}
+                max={0.9}
+                step={0.1}
+                onChange={setP}
+              />
+              <AnalysisPanel
+                text={`Pokazuje szansę na konkretną liczbę sukcesów. Np. jaka jest szansa na dokładnie 5 orłów w 10 rzutach (najwyższy słupek).`}
+                type="info"
+              />
+              <Definitions
+                items={[
+                  {
+                    term: "Rozkład Dwumianowy",
+                    def: "Opisuje liczbę sukcesów w serii niezależnych prób zagra/nie zagra (np. rzut monetą).",
+                  },
+                  {
+                    term: "Wartość Oczekiwana",
+                    def: "Średnia teoretyczna (n * p).",
+                  },
+                ]}
+              />
+            </Card>
+          </div>
+        );
+      };
+
+      // 8. NORMALNY
+      const NormalSimulator = () => {
+        const [std, setStd] = useState(1);
+        const data = useMemo(() => {
+          const arr = [];
+          for (let x = -5; x <= 5; x += 0.1)
+            arr.push({ x, y: normalPDF(x, 0, std) });
+          return arr;
+        }, [std]);
+
+        return (
+          <div className="flex flex-col lg:flex-row gap-6 h-full">
+            <div className="w-full lg:w-2/3 h-64 md:h-96 bg-white rounded-xl border border-slate-200 p-2 shadow-sm">
+              <ResponsiveContainer>
+                <AreaChart data={data}>
+                  <Area
+                    dataKey="y"
+                    stroke="#8b5cf6"
+                    fill="#8b5cf6"
+                    fillOpacity={0.2}
+                  />
+                  <ReferenceLine x={std} stroke="gray" label="+1σ" />
+                  <ReferenceLine x={-std} stroke="gray" label="-1σ" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <Card title="Krzywa Gaussa" className="w-full lg:w-1/3">
+              <SliderControl
+                label="Odchylenie (σ)"
+                value={std}
+                min={0.5}
+                max={2.5}
+                step={0.1}
+                onChange={setStd}
+              />
+              <AnalysisPanel
+                text="Reguła 68-95-99.7: W zakresie ±1σ mieści się ok. 68% wszystkich obserwacji."
+                type="info"
+              />
+              <Definitions
+                items={[
+                  {
+                    term: "Rozkład Normalny",
+                    def: "Symetryczny rozkład w kształcie dzwonu. Opisuje wiele cech naturalnych (wzrost, IQ).",
+                  },
+                  {
+                    term: "Odchylenie Standardowe (σ)",
+                    def: "Miara rozrzutu danych wokół średniej.",
+                  },
+                ]}
+              />
+            </Card>
+          </div>
+        );
+      };
+
+      // 9. BOX PLOT VS HIST
+      const BoxPlotSimulator = () => {
+        const [skew, setSkew] = useState(0);
+        const stats = useMemo(() => {
+          const d = generateSkewedData(1000, skew, 1);
+          const q1 = getPercentile(d, 0.25);
+          const q3 = getPercentile(d, 0.75);
+          const m = getPercentile(d, 0.5);
+          const bins = [];
+          for (let i = 0; i < 40; i++)
+            bins.push({
+              x: -6 + i * 0.3,
+              y: d.filter((v) => v >= -6 + i * 0.3 && v < -6 + (i + 1) * 0.3)
+                .length,
+            });
+          return {
+            q1,
+            q3,
+            m,
+            min: Math.max(-6, q1 - 1.5 * (q3 - q1)),
+            max: Math.min(6, q3 + 1.5 * (q3 - q1)),
+            bins,
+          };
+        }, [skew]);
+        const sx = (v) => ((v + 6) / 12) * 100;
+
+        return (
+          <div className="flex flex-col lg:flex-row gap-6 h-full">
+            <div className="w-full lg:w-2/3 flex flex-col gap-2">
+              <div className="h-48 bg-white p-2 border rounded-t-xl">
+                <ResponsiveContainer>
+                  <AreaChart data={stats.bins}>
+                    <Area dataKey="y" stroke="#3b82f6" fill="#3b82f6" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="h-24 bg-white p-4 border rounded-b-xl relative">
+                <svg width="100%" height="100%">
+                  <line
+                    x1={`${sx(stats.min)}%`}
+                    y1="50%"
+                    x2={`${sx(stats.max)}%`}
+                    y2="50%"
+                    stroke="black"
+                  />
+                  <rect
+                    x={`${sx(stats.q1)}%`}
+                    y="20%"
+                    width={`${sx(stats.q3) - sx(stats.q1)}%`}
+                    height="60%"
+                    fill="#e0e7ff"
+                    stroke="blue"
+                  />
+                  <line
+                    x1={`${sx(stats.m)}%`}
+                    y1="20%"
+                    x2={`${sx(stats.m)}%`}
+                    y2="80%"
+                    stroke="red"
+                    strokeWidth="2"
+                  />
+                </svg>
+              </div>
+            </div>
+            <Card title="Wykres Pudełkowy" className="w-full lg:w-1/3">
+              <SliderControl
+                label="Skośność"
+                value={skew}
+                min={-1}
+                max={1}
+                step={0.1}
+                onChange={setSkew}
+              />
+              <AnalysisPanel
+                text="To dwa spojrzenia na te same dane. Pudełko (niebieskie) to rzut z góry na 'brzuch' wykresu powyżej. Zawiera 50% typowych wyników. Wąsy to ogony rozkładu."
+                type="info"
+              />
+              <Definitions
+                items={[
+                  {
+                    term: "Boxplot",
+                    def: "Wykres pokazujący medianę, kwartyle i zakres danych w pigułce.",
+                  },
+                  {
+                    term: "IQR (Rozstęp Ćwiartkowy)",
+                    def: "Różnica między Q3 a Q1. Mówi o rozrzucie typowych przypadków.",
+                  },
+                ]}
+              />
+            </Card>
+          </div>
+        );
+      };
+
+      // 10. T-STUDENT
+      const StudentTSimulator = () => {
+        const [df, setDf] = useState(2);
+        const data = useMemo(() => {
+          const arr = [];
+          for (let x = -5; x <= 5; x += 0.1)
+            arr.push({ x, n: normalPDF(x, 0, 1), t: studentTPDF(x, df) });
+          return arr;
+        }, [df]);
+
+        return (
+          <div className="flex flex-col lg:flex-row gap-6 h-full">
+            <div className="w-full lg:w-2/3 h-64 md:h-96 bg-white rounded-xl border border-slate-200 p-2 shadow-sm">
+              <ResponsiveContainer>
+                <AreaChart data={data}>
+                  <Area
+                    type="monotone"
+                    dataKey="n"
+                    stroke="gray"
+                    fill="none"
+                    strokeDasharray="5 5"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="t"
+                    stroke="#ef4444"
+                    fill="#ef4444"
+                    fillOpacity={0.2}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <Card title="t-Student vs Normalny" className="w-full lg:w-1/3">
+              <SliderControl
+                label="Stopnie Swobody (df)"
+                value={df}
+                min={1}
+                max={30}
+                step={1}
+                onChange={setDf}
+              />
+              <AnalysisPanel
+                text={
+                  df < 5
+                    ? "Gdy badamy małą grupę (małe df), nasz wykres (czerwony) jest niższy i szerszy. To kara za brak danych - musimy być ostrożniejsi w wnioskach."
+                    : "Przy dużej grupie (duże df) wykres t-Studenta staje się prawie identyczny jak idealny rozkład normalny (szary)."
+                }
+                type="warning"
+              />
+              <Definitions
+                items={[
+                  {
+                    term: "Rozkład t-Studenta",
+                    def: "Stosowany zamiast normalnego przy małych próbach (nieznana sigma populacji).",
+                  },
+                  {
+                    term: "Stopnie Swobody (df)",
+                    def: "Zazwyczaj N-1. Określają kształt rozkładu t.",
+                  },
+                ]}
+              />
+            </Card>
+          </div>
+        );
+      };
+
+      // 11. OUTLIERY
+      const OutlierSimulator = () => {
+        const [val, setVal] = useState(5);
+        const stats = useMemo(() => {
+          const d = [2, 3, 3, 4, 4, 4, 5, 5, 6, 7, val].sort((a, b) => a - b);
+          const sum = d.reduce((a, b) => a + b, 0);
+          return {
+            m: sum / d.length,
+            med: d[Math.floor(d.length / 2)],
+            d: d.map((v, i) => ({ i, v })),
+          };
+        }, [val]);
+
+        return (
+          <div className="flex flex-col lg:flex-row gap-6 h-full">
+            <div className="w-full lg:w-2/3 h-64 md:h-96 bg-white rounded-xl border border-slate-200 p-2 shadow-sm">
+              <ResponsiveContainer>
+                <ScatterChart>
+                  <XAxis type="number" dataKey="v" domain={[0, 20]} />
+                  <YAxis type="category" dataKey="i" hide />
+                  <Scatter data={stats.d} fill="blue" />
+                  <ReferenceLine x={stats.m} stroke="red" label="Średnia" />
+                  <ReferenceLine x={stats.med} stroke="green" label="Mediana" />
+                </ScatterChart>
+              </ResponsiveContainer>
+            </div>
+            <Card title="Wpływ Outliera" className="w-full lg:w-1/3">
+              <SliderControl
+                label="Pozycja Outliera"
+                value={val}
+                min={0}
+                max={20}
+                step={1}
+                onChange={setVal}
+              />
+              <AnalysisPanel
+                text="Przesuwaj suwak. Zobaczysz, że Średnia (czerwona linia) 'biegnie' za uciekającym punktem, a Mediana (zielona) stoi w miejscu. Dlatego przy skrajnych wynikach ufamy Medianie."
+                type="warning"
+              />
+              <Definitions
+                items={[
+                  {
+                    term: "Outlier (Wartość Odstająca)",
+                    def: "Obserwacja nietypowa, daleka od reszty.",
+                  },
+                  {
+                    term: "Miara odporna",
+                    def: "Np. Mediana. Nie zmienia się gwałtownie pod wpływem błędów pomiaru.",
+                  },
+                ]}
+              />
+            </Card>
+          </div>
+        );
+      };
+
+      // 12. SKALE
+      const ScalesSimulator = () => {
+        const [type, setType] = useState("ratio");
+        const info = {
+          nominal: { t: "Nominalna", d: "Etykiety bez kolejności (np. Płeć)." },
+          ordinal: {
+            t: "Porządkowa",
+            d: "Jest kolejność, brak równych odstępów (np. Wykształcenie).",
+          },
+          interval: {
+            t: "Interwałowa",
+            d: "Równe odstępy, zero umowne (np. Temperatura C).",
+          },
+          ratio: {
+            t: "Ilorazowa",
+            d: "Zero absolutne - brak cechy (np. Czas, Waga).",
+          },
+        };
+        return (
+          <div className="flex flex-col h-full gap-4">
+            <div className="grid grid-cols-4 gap-2">
+              {Object.keys(info).map((k) => (
+                <button
+                  key={k}
+                  onClick={() => setType(k)}
+                  className={`p-2 border rounded ${
+                    type === k ? "bg-blue-600 text-white" : "bg-white"
+                  }`}
+                >
+                  {info[k].t}
+                </button>
+              ))}
+            </div>
+            <div className="bg-white p-6 rounded border shadow text-center grow flex flex-col justify-center">
+              <h2 className="text-2xl font-bold mb-2">{info[type].t}</h2>
+              <p>{info[type].d}</p>
+            </div>
+            <Definitions
+              items={[
+                {
+                  term: "Zero Absolutne",
+                  def: "Całkowity brak cechy (tylko skala ilorazowa).",
+                },
+                {
+                  term: "Zero Umowne",
+                  def: "Punkt na skali (np. 0 st. C), który nie oznacza 'nic'.",
+                },
+              ]}
+            />
+          </div>
+        );
+      };
+
+      // 13. BŁĘDY I/II
+      const ErrorMatrixSimulator = () => {
+        const [truth, setTruth] = useState("TRUE");
+        const [dec, setDec] = useState(null);
+        // Fix: Map custom error types to keys present in AnalysisPanel colors object
+        const res = !dec
+          ? null
+          : truth === "TRUE" && dec === "REJECT"
+          ? { t: "Błąd I Rodzaju (Alfa)", type: "error" }
+          : truth === "FALSE" && dec === "KEEP"
+          ? { t: "Błąd II Rodzaju (Beta)", type: "warning" }
+          : { t: "Poprawna Decyzja", type: "success" };
+
+        return (
+          <div className="grid grid-cols-2 gap-6 h-full">
+            <div className="bg-white p-6 rounded border flex flex-col items-center justify-center">
+              <div className="mb-4">
+                Rzeczywistość:{" "}
+                <button
+                  onClick={() => setTruth("TRUE")}
+                  className={`px-2 ${truth === "TRUE" ? "font-bold" : ""}`}
+                >
+                  H0 Prawdziwa
+                </button>{" "}
+                |{" "}
+                <button
+                  onClick={() => setTruth("FALSE")}
+                  className={`px-2 ${truth === "FALSE" ? "font-bold" : ""}`}
+                >
+                  H0 Fałszywa
+                </button>
+              </div>
+              <div className="mb-4">
+                Decyzja:{" "}
+                <button
+                  onClick={() => setDec("KEEP")}
+                  className="bg-blue-100 p-2 rounded m-1"
+                >
+                  Przyjmij H0
+                </button>{" "}
+                <button
+                  onClick={() => setDec("REJECT")}
+                  className="bg-blue-600 text-white p-2 rounded m-1"
+                >
+                  Odrzuć H0
+                </button>
+              </div>
+              {res && <div className={`text-xl font-bold`}>{res.t}</div>}
+            </div>
+            <Card title="Teoria Błędów">
+              <AnalysisPanel
+                text={
+                  res
+                    ? res.t
+                    : "Wybierz stan faktyczny i podejmij decyzję, aby sprawdzić wynik."
+                }
+                type={res ? res.type : "info"}
+              />
+              <Definitions
+                items={[
+                  {
+                    term: "Błąd I Rodzaju",
+                    def: "Odrzucenie prawdziwej H0 (Fałszywy Alarm).",
+                  },
+                  {
+                    term: "Błąd II Rodzaju",
+                    def: "Przyjęcie fałszywej H0 (Przeoczenie).",
+                  },
+                  {
+                    term: "Moc Testu",
+                    def: "Szansa na wykrycie istniejącego efektu.",
+                  },
+                ]}
+              />
+            </Card>
+          </div>
+        );
+      };
+
+      // 14. TEST T (NOWY - UPDATE: LICZEBNOŚĆ PRÓBY N)
+      const TTestSimulator = () => {
+        const [diff, setDiff] = useState(0);
+        const [sd, setSd] = useState(1);
+        const [n, setN] = useState(20); // Nowy suwak: Liczebność próby
+
+        const data = useMemo(() => {
+          const arr = [];
+          // Wizualizujemy rozkłady surowe, niezależne od N (d Cohena)
+          for (let x = -4; x <= 6; x += 0.1) {
+            arr.push({
+              x,
+              g1: normalPDF(x, 0, sd),
+              g2: normalPDF(x, diff, sd),
+            });
+          }
+          return arr;
+        }, [diff, sd]);
+
+        // Obliczenia statystyczne zależne od N
+        // t = (diff) / (SD_pooled * sqrt(2/n))
+        // Przyjmujemy SD_pooled = sd (równe wariancje)
+        const standardError = sd * Math.sqrt(2 / n);
+        const tVal = diff / standardError;
+
+        // Aproksymacja p-value (bardzo uproszczona dla Z-testu, bo brak pełnej implementacji t-dist CDF w JS)
+        // Dla celów edukacyjnych wystarczy pokazać trend.
+        const pValApprox = Math.exp(-0.717 * tVal - 0.416 * tVal * tVal); // Tylko heurystyka wizualna!
+
+        const cohenD = diff / sd;
+
+        return (
+          <div className="flex flex-col lg:flex-row gap-6 h-full">
+            <div className="w-full lg:w-2/3 h-64 md:h-96 bg-white rounded-xl border border-slate-200 p-2 shadow-sm">
+              <ResponsiveContainer>
+                <AreaChart data={data}>
+                  <Area
+                    type="monotone"
+                    dataKey="g1"
+                    stroke="#3b82f6"
+                    fill="#3b82f6"
+                    fillOpacity={0.3}
+                    name="Grupa A"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="g2"
+                    stroke="#ef4444"
+                    fill="#ef4444"
+                    fillOpacity={0.3}
+                    name="Grupa B"
+                  />
+                  <Tooltip />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <Card
+              title="Test t dla prób niezależnych"
+              className="w-full lg:w-1/3"
+            >
+              <SliderControl
+                label="Różnica Średnich"
+                value={diff}
+                min={0}
+                max={4}
+                step={0.2}
+                onChange={setDiff}
+              />
+              <SliderControl
+                label="Odchylenie (SD)"
+                value={sd}
+                min={0.5}
+                max={2}
+                step={0.1}
+                onChange={setSd}
+              />
+              <SliderControl
+                label="Liczebność Próby (N)"
+                value={n}
+                min={5}
+                max={200}
+                step={5}
+                onChange={setN}
+              />
+
+              <div className="mt-4 space-y-2 bg-slate-50 p-3 rounded text-sm border border-slate-200">
+                <div className="flex justify-between">
+                  <span>Wynik t:</span> <b>{tVal.toFixed(2)}</b>
+                </div>
+                <div className="flex justify-between text-red-600 font-bold">
+                  <span>d Cohena:</span> <b>{cohenD.toFixed(2)}</b>
+                </div>
+              </div>
+              <AnalysisPanel
+                text={
+                  n > 50 && cohenD < 0.2
+                    ? "Uwaga! Przy dużym N nawet mały efekt (d) może dać wysokie t (istotność)."
+                    : "Zmieniaj N i obserwuj: d Cohena (siła) stoi w miejscu, ale t (pewność) rośnie! To dowód, że duża próba ułatwia wykrycie nawet małych różnic."
+                }
+                type="info"
+              />
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded text-sm text-slate-700">
+                <strong>Jak czytać ten wykres?</strong>
+                <br />
+                Niebieska i czerwona górka to dwie badane grupy (np. kobiety i
+                mężczyźni).
+                <br />
+                • Jeśli górki się pokrywają -> brak różnic.
+                <br />
+                • Jeśli się rozjeżdżają -> jest różnica.
+                <br />
+                <strong>d Cohena</strong> (na czerwono) mówi o sile tej różnicy
+                niezależnie od liczby badanych.
+              </div>
+              <Definitions
+                items={[
+                  {
+                    term: "d Cohena",
+                    def: "Miara siły efektu NIEZALEŻNA od wielkości próby. (Różnica / SD).",
+                  },
+                  {
+                    term: "Statystyka t",
+                    def: "Miara istotności ZALEŻNA od wielkości próby. (Różnica / Błąd Standardowy).",
+                  },
+                ]}
+              />
+            </Card>
+          </div>
+        );
+      };
+
+      // 15. REGRESJA (NOWY)
+      const RegressionSimulator = () => {
+        const [slope, setSlope] = useState(1);
+        const [intercept, setIntercept] = useState(0);
+
+        const data = useMemo(() => {
+          const arr = [];
+          for (let i = 0; i < 20; i++) {
+            const x = i / 2;
+            const noise = (Math.random() - 0.5) * 2;
+            const y_real = slope * x + intercept + noise;
+            const y_pred = slope * x + intercept;
+            arr.push({ x, y: y_real, line: y_pred });
+          }
+          return arr;
+        }, [slope, intercept]);
+
+        const analysisText = `Równanie: y = ${slope}x + ${intercept}. Linia pomarańczowa to nasz model (teoria), a kropki to rzeczywistość (dane z błędami).`;
+        const panelType =
+          slope > 0.1 ? "success" : slope < -0.1 ? "error" : "info";
+
+        return (
+          <div className="flex flex-col lg:flex-row gap-6 h-full">
+            <div className="w-full lg:w-2/3 h-64 md:h-96 bg-white rounded-xl border border-slate-200 p-2 shadow-sm">
+              <ResponsiveContainer>
+                <ComposedChart data={data}>
+                  <XAxis type="number" dataKey="x" domain={[0, 10]} />
+                  <YAxis domain={[-5, 15]} />
+                  <Scatter dataKey="y" fill="#8884d8" />
+                  <Line
+                    type="monotone"
+                    dataKey="line"
+                    stroke="#ff7300"
+                    dot={false}
+                    strokeWidth={2}
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+            <Card title="Regresja Liniowa" className="w-full lg:w-1/3">
+              <SliderControl
+                label="Nachylenie (a)"
+                value={slope}
+                min={-2}
+                max={2}
+                step={0.1}
+                onChange={setSlope}
+              />
+              <SliderControl
+                label="Przesunięcie (b)"
+                value={intercept}
+                min={-5}
+                max={5}
+                step={0.5}
+                onChange={setIntercept}
+              />
+
+              <AnalysisPanel text={analysisText} type={panelType} />
+              <Definitions
+                items={[
+                  {
+                    term: "Regresja",
+                    def: "Metoda przewidywania jednej zmiennej na podstawie drugiej.",
+                  },
+                  {
+                    term: "Reszty",
+                    def: "Różnica między wynikiem obserwowanym a przewidywanym przez model.",
+                  },
+                ]}
+              />
+            </Card>
+          </div>
+        );
+      };
+
+      // 16. KURTOZA (NOWY MODUŁ)
+      const KurtosisSimulator = () => {
+        const [beta, setBeta] = useState(2);
+
+        const data = useMemo(() => {
+          const arr = [];
+          const alpha = Math.sqrt(gamma(1 / beta) / gamma(3 / beta));
+
+          for (let x = -5; x <= 5; x += 0.1) {
+            arr.push({
+              x,
+              norm: normalPDF(x, 0, 1),
+              kurt: ggdPDF(x, alpha, beta),
+            });
+          }
+          return arr;
+        }, [beta]);
+
+        const analysisText = useMemo(() => {
+          if (Math.abs(beta - 2.0) < 0.1)
+            return "Rozkład Mezokurtyczny (Normalny). Kurtoza = 0 (nadmiarowa).";
+          if (beta < 2)
+            return "Rozkład Wysmukły (Leptokurtyczny). Dużo wyników w samym środku i dużo skrajnych (grube ogony).";
+          return "Rozkład Spłaszczony (Platykurtyczny). Wyniki są bardziej rozlane, mniej jest tych typowych.";
+        }, [beta]);
+
+        return (
+          <div className="flex flex-col lg:flex-row gap-6 h-full">
+            <div className="w-full lg:w-2/3 h-64 md:h-96 bg-white rounded-xl border border-slate-200 p-2 shadow-sm">
+              <ResponsiveContainer>
+                <AreaChart data={data}>
+                  <defs>
+                    <linearGradient id="colorKurt" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <Area
+                    type="monotone"
+                    dataKey="norm"
+                    stroke="#94a3b8"
+                    strokeDasharray="5 5"
+                    fill="none"
+                    strokeWidth={2}
+                    name="Normalny"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="kurt"
+                    stroke="#8b5cf6"
+                    strokeWidth={3}
+                    fill="url(#colorKurt)"
+                    name="Symulacja"
+                  />
+                  <Tooltip formatter={(v) => v.toFixed(3)} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <Card title="Kurtoza (Wysmukłość)" className="w-full lg:w-1/3">
+              <SliderControl
+                label="Kształt (Beta)"
+                value={beta}
+                min={1.2}
+                max={8.0}
+                step={0.1}
+                onChange={setBeta}
+                suffix={
+                  beta < 2 ? " (Lepto)" : beta > 2.1 ? " (Platy)" : " (Norm)"
+                }
+              />
+              <AnalysisPanel text={analysisText} type="info" />
+              <Definitions
+                items={[
+                  {
+                    term: "Kurtoza",
+                    def: "Miara spłaszczenia rozkładu i grubości ogonów.",
+                  },
+                  {
+                    term: "Leptokurtyczny",
+                    def: "Rozkład wysmukły. Duże skupienie wokół średniej.",
+                  },
+                  {
+                    term: "Platykurtyczny",
+                    def: "Rozkład spłaszczony. Bardziej równomierne rozłożenie.",
+                  },
+                ]}
+              />
+            </Card>
+          </div>
+        );
+      };
+
+      // 17. TABELE APA (NOWY MODUŁ - INTERAKTYWNY)
+      const APATablesSimulator = () => {
+        const [info, setInfo] = useState(
+          "Najedź kursorem na element tabeli, aby zobaczyć wyjaśnienie."
+        );
+        const [animKey, setAnimKey] = useState(0);
+
+        const explain = (term, definition, implication) => {
+          setInfo(
+            <div className="flex flex-col items-center gap-1">
+              <strong className="text-red-700 text-lg uppercase tracking-wider">
+                {term}
+              </strong>
+              <span className="font-medium text-slate-800">{definition}</span>
+              <em className="text-slate-600 mt-1 bg-white/50 px-2 py-1 rounded">
+                {implication}
+              </em>
+            </div>
+          );
+          setAnimKey((k) => k + 1);
+        };
+        const clear = () => {
+          // Pozostawiamy ostatni stan lub resetujemy
+        };
+
+        const TdHelp = ({ t, d, i, children }) => (
+          <span
+            className="cursor-help border-b-2 border-dotted border-slate-400 hover:border-red-500 hover:bg-red-50 hover:text-red-700 hover:font-extrabold transition-all duration-200 px-1.5 py-0.5 rounded inline-block hover:scale-110 hover:shadow-sm"
+            onMouseEnter={() => explain(t, d, i)}
+            onMouseLeave={clear}
+          >
+            {children}
+          </span>
+        );
+
+        return (
+          <div className="flex flex-col h-full gap-6 p-4 bg-white rounded-xl border border-slate-200 shadow-sm overflow-y-auto">
+            <div className="text-center mb-4">
+              <h2 className="text-xl font-bold text-slate-800">
+                Standardy Raportowania APA
+              </h2>
+              <p className="text-slate-500 text-sm">
+                Przykłady poprawnie sformatowanych tabel do prac empirycznych.
+              </p>
+            </div>
+
+            {/* Info Box z Animacją */}
+            <div className="sticky top-0 z-20 bg-gradient-to-b from-blue-50 to-white border-b-4 border-blue-500 p-4 rounded-b-xl shadow-lg min-h-[6rem] flex items-center justify-center text-center transition-all">
+              <div
+                key={animKey}
+                className="animate-in zoom-in fade-in duration-300 w-full"
+              >
+                {typeof info === "string" ? (
+                  <span className="text-slate-400 italic">{info}</span>
+                ) : (
+                  info
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-12 max-w-4xl mx-auto w-full pb-8 pt-4">
+              {/* Tabela 1: Korelacje */}
+              <div>
+                <h3 className="font-bold text-slate-700 mb-2">
+                  Tabela 1. Średnie, odchylenia standardowe i korelacje między
+                  zmiennymi
+                </h3>
+                <table className="apa-table w-full">
+                  <thead>
+                    <tr>
+                      <th className="text-left">Zmienna</th>
+                      <th>
+                        <TdHelp
+                          t="M (Mean)"
+                          d="Średnia arytmetyczna."
+                          i="Pokazuje typowy poziom badanej cechy w grupie. Wyższa = badani mieli więcej tej cechy."
+                        >
+                          M
+                        </TdHelp>
+                      </th>
+                      <th>
+                        <TdHelp
+                          t="SD (Standard Deviation)"
+                          d="Odchylenie standardowe."
+                          i="Mówi o tym, jak bardzo wyniki są rozrzucone wokół średniej. Duże SD = duża różnorodność w grupie. Niskie = wszyscy podobnie."
+                        >
+                          SD
+                        </TdHelp>
+                      </th>
+                      <th>1</th>
+                      <th>2</th>
+                      <th>3</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="text-left">1. Satysfakcja</td>
+                      <td>15.4</td>
+                      <td>2.1</td>
+                      <td>–</td>
+                      <td></td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td className="text-left">2. Stres</td>
+                      <td>8.2</td>
+                      <td>3.5</td>
+                      <td>
+                        <TdHelp
+                          t="Korelacja (-.45)"
+                          d="Umiarkowana korelacja ujemna."
+                          i="Oznacza, że im wyższa satysfakcja, tym niższy stres. Znak minus odwraca zależność."
+                        >
+                          -.45**
+                        </TdHelp>
+                      </td>
+                      <td>–</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td className="text-left">3. Wydajność</td>
+                      <td>102.5</td>
+                      <td>12.8</td>
+                      <td>
+                        <TdHelp
+                          t="Korelacja (.32)"
+                          d="Słaba/Umiarkowana korelacja dodatnia."
+                          i="Im wyższa satysfakcja, tym nieco wyższa wydajność."
+                        >
+                          .32*
+                        </TdHelp>
+                      </td>
+                      <td>-.18</td>
+                      <td>–</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p className="text-xs italic mt-1 text-slate-600">
+                  *{" "}
+                  <TdHelp
+                    t="Istotność (p < .05)"
+                    d="Prawdopodobieństwo błędu mniejsze niż 5%."
+                    i="Wynik uznajemy za wiarygodny (nieprzypadkowy)."
+                  >
+                    p &lt; .05
+                  </TdHelp>
+                  . **{" "}
+                  <TdHelp
+                    t="Istotność (p < .01)"
+                    d="Prawdopodobieństwo błędu mniejsze niż 1%."
+                    i="Bardzo silny dowód na to, że związek nie jest dziełem przypadku."
+                  >
+                    p &lt; .01
+                  </TdHelp>
+                  .
+                </p>
+              </div>
+
+              {/* Tabela 2: Regresja */}
+              <div>
+                <h3 className="font-bold text-slate-700 mb-2">
+                  Tabela 2. Wyniki analizy regresji liniowej dla zmiennej
+                  zależnej Wydajność
+                </h3>
+                <table className="apa-table w-full">
+                  <thead>
+                    <tr>
+                      <th className="text-left">Predyktor</th>
+                      <th>
+                        <TdHelp
+                          t="B (Niestandaryzowane)"
+                          d="Współczynnik regresji w oryginalnych jednostkach."
+                          i="Mówi, o ile zmieni się wynik (Y), gdy zmienimy predyktor (X) o 1 jednostkę."
+                        >
+                          B
+                        </TdHelp>
+                      </th>
+                      <th>
+                        <TdHelp
+                          t="SE B"
+                          d="Błąd standardowy oszacowania B."
+                          i="Mówi o precyzji naszego wyliczenia B. Im mniejszy, tym lepiej."
+                        >
+                          SE B
+                        </TdHelp>
+                      </th>
+                      <th>
+                        <TdHelp
+                          t="β (Beta)"
+                          d="Współczynnik standaryzowany."
+                          i="Pozwala porównać siłę różnych predyktorów niezależnie od ich jednostek. Tutaj widać, że Satysfakcja (.35) jest ważniejsza niż Stres (-.22)."
+                        >
+                          β
+                        </TdHelp>
+                      </th>
+                      <th>
+                        <TdHelp
+                          t="t"
+                          d="Statystyka testowa t."
+                          i="Iloraz B przez błąd SE. Im wynik dalej od zera (np. > 2), tym pewniejszy wynik."
+                        >
+                          t
+                        </TdHelp>
+                      </th>
+                      <th>
+                        <TdHelp
+                          t="p"
+                          d="Poziom istotności."
+                          i="Prawdopodobieństwo, że taki wynik wyszedł przez przypadek. Chcemy, żeby było mniejsze niż .05."
+                        >
+                          p
+                        </TdHelp>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="text-left">Stała</td>
+                      <td>50.12</td>
+                      <td>4.21</td>
+                      <td></td>
+                      <td>11.90</td>
+                      <td>&lt; .001</td>
+                    </tr>
+                    <tr>
+                      <td className="text-left">Satysfakcja</td>
+                      <td>2.15</td>
+                      <td>0.45</td>
+                      <td>.35</td>
+                      <td>4.77</td>
+                      <td>&lt; .001</td>
+                    </tr>
+                    <tr>
+                      <td className="text-left">Stres</td>
+                      <td>-0.85</td>
+                      <td>0.30</td>
+                      <td>-.22</td>
+                      <td>-2.83</td>
+                      <td>.006</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p className="text-xs italic mt-1 text-slate-600">
+                  Uwaga.{" "}
+                  <TdHelp
+                    t="R² (.18)"
+                    d="Współczynnik determinacji."
+                    i="Mówi, jaki procent zmienności wyniku (Wydajności) wyjaśniliśmy naszym modelem (Stres + Satysfakcja). .18 oznacza 18%."
+                  >
+                    R² = .18
+                  </TdHelp>
+                  .
+                </p>
+              </div>
+
+              {/* Tabela 3: Test t (NEW) */}
+              <div>
+                <h3 className="font-bold text-slate-700 mb-2">
+                  Tabela 3. Wyniki testu t dla prób niezależnych porównującego
+                  wyniki w grupie eksperymentalnej i kontrolnej
+                </h3>
+                <table className="apa-table w-full">
+                  <thead>
+                    <tr>
+                      <th className="text-left">Grupa</th>
+                      <th>
+                        <TdHelp
+                          t="M"
+                          d="Średnia"
+                          i="Przeciętny wynik w grupie."
+                        >
+                          M
+                        </TdHelp>
+                      </th>
+                      <th>
+                        <TdHelp
+                          t="SD"
+                          d="Odchylenie Standardowe"
+                          i="Zróżnicowanie wyników."
+                        >
+                          SD
+                        </TdHelp>
+                      </th>
+                      <th>
+                        <TdHelp t="t" d="Statystyka t" i="Wynik testu różnic.">
+                          t
+                        </TdHelp>
+                      </th>
+                      <th>
+                        <TdHelp
+                          t="df"
+                          d="Stopnie swobody (Degrees of Freedom)."
+                          i="To 'budżet' informacji. Masz N osób. Żeby policzyć wariancję w 2 grupach, 'wydajesz' 2 punkty (średnie). Zostaje N-2. Im więcej masz stopni (większa próba), tym bardziej Twój wynik t 'ufa' rozkładowi normalnemu. Gdyby df było mniejsze, musielibyśmy uzyskać wyższe t, by mieć to samo p."
+                        >
+                          df
+                        </TdHelp>
+                      </th>
+                      <th>
+                        <TdHelp
+                          t="p"
+                          d="Istotność"
+                          i="Prawdopodobieństwo błędu."
+                        >
+                          p
+                        </TdHelp>
+                      </th>
+                      <th>
+                        <TdHelp
+                          t="d (Cohen's d)"
+                          d="Wielkość efektu (Effect Size)."
+                          i="Mówi o sile różnicy, niezależnie od liczebności próby. 0.2=mały efekt, 0.5=średni, 0.8=duży. Pokazuje, o ile odchyleń standardowych różnią się średnie."
+                        >
+                          d
+                        </TdHelp>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="text-left">Eksperymentalna</td>
+                      <td>24.5</td>
+                      <td>4.2</td>
+                      <td rowSpan="2" className="align-middle border-l">
+                        <TdHelp
+                          t="Wynik t (2.45)"
+                          d="Wartość testu."
+                          i="Wskazuje na różnicę między średnimi."
+                        >
+                          2.45
+                        </TdHelp>
+                      </td>
+                      <td rowSpan="2" className="align-middle">
+                        <TdHelp
+                          t="df (38)"
+                          d="Stopnie swobody."
+                          i="N - 2 (dla równych grup 20+20)."
+                        >
+                          38
+                        </TdHelp>
+                      </td>
+                      <td rowSpan="2" className="align-middle">
+                        <TdHelp
+                          t="p (.019)"
+                          d="Istotne statystycznie (<.05)."
+                          i="Różnica jest wiarygodna."
+                        >
+                          .019
+                        </TdHelp>
+                      </td>
+                      <td rowSpan="2" className="align-middle">
+                        <TdHelp
+                          t="d (0.78)"
+                          d="Silny efekt."
+                          i="Prawie 0.8 odchylenia standardowego różnicy."
+                        >
+                          0.78
+                        </TdHelp>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="text-left">Kontrolna</td>
+                      <td>21.2</td>
+                      <td>4.5</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Tabela 4: Mann-Whitney U (Non-parametric) */}
+              <div>
+                <h3 className="font-bold text-slate-700 mb-2">
+                  Tabela 4. Wyniki testu U Manna-Whitneya (nieparametryczne)
+                </h3>
+                <table className="apa-table w-full">
+                  <thead>
+                    <tr>
+                      <th className="text-left">Grupa</th>
+                      <th>N</th>
+                      <th>
+                        <TdHelp
+                          t="Mean Rank"
+                          d="Ranga średnia."
+                          i="W testach nieparametrycznych nie porównujemy średnich, tylko rangi (kolejność). Wyższa ranga = wyższe wyniki w tej grupie."
+                        >
+                          Mean Rank
+                        </TdHelp>
+                      </th>
+                      <th>
+                        <TdHelp
+                          t="U"
+                          d="Statystyka U."
+                          i="Liczba 'zwycięstw' jednej grupy nad drugą w parach. Im mniejsze U (lub większe, zależy od ujęcia), tym większa różnica."
+                        >
+                          U
+                        </TdHelp>
+                      </th>
+                      <th>
+                        <TdHelp
+                          t="Z"
+                          d="Statystyka Z."
+                          i="Przy próbach N > 20, rozkład U przybliża się rozkładem normalnym (Z). Używamy Z do wyliczenia p."
+                        >
+                          Z
+                        </TdHelp>
+                      </th>
+                      <th>
+                        <TdHelp
+                          t="p"
+                          d="Istotność."
+                          i="Czy różnica w rangach jest przypadkowa?"
+                        >
+                          p
+                        </TdHelp>
+                      </th>
+                      <th>
+                        <TdHelp
+                          t="r_rb"
+                          d="Korelacja dwuseryjna rangowa (Glass rank biserial)."
+                          i="Miara siły efektu dla M-W U. Podobna do r Pearsona: 0.1 mały, 0.3 średni, 0.5 duży."
+                        >
+                          r<sub>rb</sub>
+                        </TdHelp>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="text-left">Terapia A</td>
+                      <td>15</td>
+                      <td>18.50</td>
+                      <td rowSpan="2" className="align-middle border-l">
+                        <TdHelp
+                          t="U (45.5)"
+                          d="Wynik surowy testu."
+                          i="Suma rang mniejszej grupy."
+                        >
+                          45.5
+                        </TdHelp>
+                      </td>
+                      <td rowSpan="2" className="align-middle">
+                        <TdHelp
+                          t="Z (-2.15)"
+                          d="Standaryzowany wynik U."
+                          i="Pozwala odczytać p z tablic rozkładu normalnego."
+                        >
+                          -2.15
+                        </TdHelp>
+                      </td>
+                      <td rowSpan="2" className="align-middle">
+                        <TdHelp
+                          t="p (.031)"
+                          d="Istotne (<.05)."
+                          i="Grupy różnią się statystycznie."
+                        >
+                          .031
+                        </TdHelp>
+                      </td>
+                      <td rowSpan="2" className="align-middle">
+                        <TdHelp
+                          t="r_rb (0.42)"
+                          d="Średni/Duży efekt."
+                          i="Silny związek między grupą a wynikiem."
+                        >
+                          0.42
+                        </TdHelp>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="text-left">Terapia B</td>
+                      <td>15</td>
+                      <td>12.50</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Tabela 5: Spearman Correlation */}
+              <div>
+                <h3 className="font-bold text-slate-700 mb-2">
+                  Tabela 5. Korelacje rangowe Spearmana (nieparametryczne)
+                </h3>
+                <table className="apa-table w-full">
+                  <thead>
+                    <tr>
+                      <th className="text-left">Zmienna</th>
+                      <th>1</th>
+                      <th>2</th>
+                      <th>3</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="text-left">1. Staż pracy (lata)</td>
+                      <td>–</td>
+                      <td></td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td className="text-left">
+                        2. Poziom stresu (skala porządkowa)
+                      </td>
+                      <td>
+                        <TdHelp
+                          t="rho (-.65)"
+                          d="Silna korelacja ujemna Spearmana."
+                          i="Używamy 'rho' (ρ) zamiast 'r', gdy dane są rangowe lub mają outliery. Tutaj: im dłuższy staż, tym niższy stres."
+                        >
+                          -.65**
+                        </TdHelp>
+                      </td>
+                      <td>–</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td className="text-left">3. Zadowolenie (1-5)</td>
+                      <td>
+                        <TdHelp
+                          t="rho (.22)"
+                          d="Słaba korelacja dodatnia."
+                          i="Nieistotna (brak gwiazdek). Związek może być przypadkowy."
+                        >
+                          .22
+                        </TdHelp>
+                      </td>
+                      <td>-.10</td>
+                      <td>–</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Tabela 6: r vs r2 vs R2 */}
+              <div>
+                <h3 className="font-bold text-slate-700 mb-2">
+                  Tabela 6. Porównanie miar siły związku: r, r² i R²
+                </h3>
+                <div className="text-sm text-slate-600 mb-2 bg-yellow-50 p-2 rounded border border-yellow-200">
+                  <strong>Uwaga studenta:</strong> Zobacz, jak drastycznie różni
+                  się interpretacja "małego" r (siła związku) od "małego" r²
+                  (wyjaśniona wariancja).
+                </div>
+                <table className="apa-table w-full">
+                  <thead>
+                    <tr>
+                      <th>Miara</th>
+                      <th>Wartość</th>
+                      <th>Interpretacja "łopatologiczna"</th>
+                      <th>
+                        <TdHelp
+                          t="% Wyjaśnionego Świata"
+                          d="Procent wariancji."
+                          i="Ile % zmienności jednej cechy tłumaczy druga?"
+                        >
+                          % Wyjaśnienia
+                        </TdHelp>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="bg-slate-50">
+                      <td
+                        colSpan="4"
+                        className="text-left font-bold text-xs uppercase tracking-wide py-1"
+                      >
+                        Korelacja Prosta (jedna zmienna X, jedna Y)
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <TdHelp
+                          t="r (Pearson)"
+                          d="Współczynnik korelacji."
+                          i="Mówi o 'sklejeniu' punktów wokół linii. 0.1 to mało, 0.3 średnio, 0.5 dużo."
+                        >
+                          r
+                        </TdHelp>
+                      </td>
+                      <td>0.30</td>
+                      <td>
+                        "Średni" związek. Zauważalny gołym okiem na wykresie.
+                      </td>
+                      <td>---</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <TdHelp
+                          t="r² (r-kwadrat)"
+                          d="Współczynnik determinacji."
+                          i="To r podniesione do kwadratu (0.3 * 0.3 = 0.09). Mówi o wspólnej wariancji."
+                        >
+                          r²
+                        </TdHelp>
+                      </td>
+                      <td>0.09</td>
+                      <td>
+                        "Mało!". Mimo że r=0.30 wygląda nieźle, to wyjaśniamy
+                        tylko 9% zmienności. 91% to wciąż zagadka!
+                      </td>
+                      <td>
+                        <strong>9%</strong>
+                      </td>
+                    </tr>
+                    <tr className="bg-slate-50">
+                      <td
+                        colSpan="4"
+                        className="text-left font-bold text-xs uppercase tracking-wide py-1"
+                      >
+                        Regresja Wielozmienna (Wiele X, jeden Y)
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <TdHelp
+                          t="R² (Duże R-kwadrat)"
+                          d="Współczynnik determinacji dla modelu."
+                          i="Ile łącznie wyjaśniają wszystkie zmienne (X1 + X2 + X3...) razem wzięte."
+                        >
+                          R²
+                        </TdHelp>
+                      </td>
+                      <td>0.40</td>
+                      <td>
+                        "Dużo!". Mimo że pojedyncze r mogą być średnie (np.
+                        0.30), to razem (jako drużyna) wyjaśniają duży kawał
+                        rzeczywistości.
+                      </td>
+                      <td>
+                        <strong>40%</strong>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      // --- GŁÓWNA STRUKTURA APLIKACJI ---
+
+      const App = () => {
+        const [activeTab, setActiveTab] = useState(0);
+        const [menuOpen, setMenuOpen] = useState(false);
+
+        const tabs = [
+          {
+            id: 0,
+            name: "Skośność",
+            icon: TrendingUp,
+            comp: <SkewnessSimulator />,
+          },
+          {
+            id: 1,
+            name: "Hipotezy",
+            icon: Target,
+            comp: <HypothesisSimulator />,
+          },
+          { id: 2, name: "CTG", icon: Activity, comp: <CLTSimulator /> },
+          {
+            id: 3,
+            name: "Wielkie Liczby",
+            icon: GitCommit,
+            comp: <LLNSimulator />,
+          },
+          {
+            id: 4,
+            name: "Przedziały Ufności",
+            icon: LayoutGrid,
+            comp: <CISimulator />,
+          },
+          {
+            id: 5,
+            name: "Korelacja",
+            icon: TrendingUp,
+            comp: <CorrelationSimulator />,
+          },
+          {
+            id: 6,
+            name: "Dwumianowy",
+            icon: BarChart2,
+            comp: <BinomialSimulator />,
+          },
+          { id: 7, name: "Normalny", icon: Sigma, comp: <NormalSimulator /> },
+          {
+            id: 8,
+            name: "Box vs Hist",
+            icon: BoxSelect,
+            comp: <BoxPlotSimulator />,
+          },
+          {
+            id: 9,
+            name: "t-Student",
+            icon: Scale,
+            comp: <StudentTSimulator />,
+          },
+          {
+            id: 10,
+            name: "Outliery",
+            icon: AlertTriangle,
+            comp: <OutlierSimulator />,
+          },
+          { id: 11, name: "Skale", icon: Ruler, comp: <ScalesSimulator /> },
+          {
+            id: 12,
+            name: "Błędy I/II",
+            icon: MousePointerClick,
+            comp: <ErrorMatrixSimulator />,
+          },
+          {
+            id: 13,
+            name: "Test t (Grupy)",
+            icon: Users,
+            comp: <TTestSimulator />,
+          },
+          {
+            id: 14,
+            name: "Regresja",
+            icon: TrendingUp2,
+            comp: <RegressionSimulator />,
+          },
+          {
+            id: 15,
+            name: "Kurtoza",
+            icon: Mountain,
+            comp: <KurtosisSimulator />,
+          },
+          {
+            id: 16,
+            name: "Tabele APA",
+            icon: FileText,
+            comp: <APATablesSimulator />,
+          },
+          {
+            id: 17,
+            name: "Miary Dyspersji",
+            icon: Activity,
+            comp: <DispersionSimulator />,
+          },
+          {
+            id: 18,
+            name: "Miary Tendencji Centralnej",
+            icon: AlignCenter,
+            comp: <CentralTendencySimulator />,
+          },
+        ];
+
+        return (
+          <div className="min-h-screen flex flex-col bg-slate-50">
+            <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+              <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-600 text-white p-2 rounded-lg shadow-md shadow-blue-200">
+                    <Calculator size={22} />
+                  </div>
+                  <div>
+                    <h1 className="text-lg md:text-xl font-bold text-slate-800 tracking-tight">
+                      Laboratorium Statystyczne
+                    </h1>
+                    <p className="text-[10px] uppercase font-semibold text-blue-600 tracking-wider">
+                      Wersja 4.2
+                    </p>
+                  </div>
+                </div>
+                <button
+                  className="md:hidden p-2 text-slate-600"
+                  onClick={() => setMenuOpen(!menuOpen)}
+                >
+                  {menuOpen ? <X /> : <Menu />}
+                </button>
+              </div>
+              {menuOpen && (
+                <div className="md:hidden border-t border-slate-100 bg-white absolute w-full shadow-lg">
+                  <div className="grid grid-cols-2 gap-2 p-2">
+                    {tabs.map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => {
+                          setActiveTab(t.id);
+                          setMenuOpen(false);
+                        }}
+                        className={`p-3 text-sm font-medium rounded-lg flex items-center gap-2 ${
+                          activeTab === t.id
+                            ? "bg-blue-50 text-blue-700"
+                            : "text-slate-600"
+                        }`}
+                      >
+                        <t.icon size={16} /> {t.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </header>
+
+            <div className="hidden md:block max-w-7xl mx-auto px-4 pt-6 w-full">
+              <div className="bg-white p-1.5 rounded-xl shadow-sm border border-slate-200 inline-flex flex-wrap gap-1 w-full lg:w-auto justify-center">
+                {tabs.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setActiveTab(t.id)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all duration-200 ${
+                      activeTab === t.id
+                        ? "bg-blue-600 text-white shadow-md"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    }`}
+                  >
+                    <t.icon
+                      size={16}
+                      className={
+                        activeTab === t.id ? "opacity-100" : "opacity-70"
+                      }
+                    />{" "}
+                    {t.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <main className="max-w-7xl mx-auto px-4 py-6 w-full grow flex flex-col">
+              <div className="grow animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {tabs[activeTab].comp}
+              </div>
+            </main>
+
+            <footer className="bg-white border-t border-slate-200 py-6 mt-auto">
+              <div className="max-w-7xl mx-auto px-4 text-center text-xs text-slate-400">
+                Interaktywne Narzędzia Edukacyjne &copy; 2024
+              </div>
+            </footer>
+          </div>
+        );
+      };
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>

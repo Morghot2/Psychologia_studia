@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Laboratorium Psychologii</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        header {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            font-size: 1.4rem;
+        }
+
+        header h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        header p {
+            font-size: 0.75rem;
+            color: #6366f1;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero p {
+            color: #64748b;
+            font-size: 1.05rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 1.75rem;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent, #6366f1);
+            border-radius: 16px 16px 0 0;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+            border-color: var(--accent, #6366f1);
+        }
+
+        .card-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            font-size: 1.6rem;
+            background: var(--accent-light, #eef2ff);
+        }
+
+        .card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .card p {
+            font-size: 0.875rem;
+            color: #64748b;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            background: var(--accent-light, #eef2ff);
+            color: var(--accent, #6366f1);
+            width: fit-content;
+        }
+
+        .badge-new {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #10b981;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 999px;
+            text-transform: uppercase;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">🧠</div>
+        <div>
+            <h1>Laboratorium Psychologii</h1>
+            <p>Interaktywne narzędzia edukacyjne</p>
+        </div>
+    </header>
+
+    <main>
+        <div class="hero">
+            <h2>Wybierz laboratorium</h2>
+            <p>Kliknij na wybrany moduł, aby go uruchomić</p>
+        </div>
+
+        <div class="grid">
+
+            <!-- KARTA 1 -->
+            <a href="./lab-statystyka/" class="card" style="--accent:#6366f1; --accent-light:#eef2ff;">
+                <span class="badge-new">Nowe</span>
+                <div class="card-icon">📊</div>
+                <h3>Laboratorium Statystyczne</h3>
+                <p>19 interaktywnych modułów: skośność, hipotezy, korelacja, regresja, testy t, tabele APA i wiele
+                    więcej.</p>
+                <span class="tag">Statystyka</span>
+            </a>
+
+            <!-- KARTA 2 — zastąp href i treść swoim drugim labem -->
+            <a href="./lab-pamiec/" class="card" style="--accent:#0ea5e9; --accent-light:#e0f2fe;">
+                <div class="card-icon">🧩</div>
+                <h3>Laboratorium Pamięci</h3>
+                <p>Ćwiczenia i testy badające różne aspekty pamięci krótko- i długoterminowej.</p>
+                <span class="tag">Pamięć</span>
+            </a>
+
+            <!-- KARTA 3 -->
+            <a href="./lab-percepcja/" class="card" style="--accent:#10b981; --accent-light:#d1fae5;">
+                <div class="card-icon">👁️</div>
+                <h3>Laboratorium Percepcji</h3>
+                <p>Złudzenia optyczne, progi percepcji i eksperymenty z postrzeganiem.</p>
+                <span class="tag">Percepcja</span>
+            </a>
+
+            <!-- KARTA 4 -->
+            <a href="./lab-emocje/" class="card" style="--accent:#f59e0b; --accent-light:#fef3c7;">
+                <div class="card-icon">😊</div>
+                <h3>Laboratorium Emocji</h3>
+                <p>Rozpoznawanie emocji, skale nastroju i ćwiczenia z regulacji emocjonalnej.</p>
+                <span class="tag">Emocje</span>
+            </a>
+
+            <!-- KARTA 5 -->
+            <a href="./lab-spoleczna/" class="card" style="--accent:#ec4899; --accent-light:#fce7f3;">
+                <div class="card-icon">👥</div>
+                <h3>Psychologia Społeczna</h3>
+                <p>Eksperymenty z konformizmem, wpływem społecznym i dynamiką grupy.</p>
+                <span class="tag">Społeczna</span>
+            </a>
+
+            <!-- KARTA "Wkrótce" — szablon dla przyszłych labów -->
+            <div class="card" style="--accent:#94a3b8; --accent-light:#f1f5f9; opacity:0.6; cursor:default;">
+                <div class="card-icon">🔬</div>
+                <h3>Nowe laboratorium</h3>
+                <p>Kolejny moduł w przygotowaniu. Wkrótce dostępny.</p>
+                <span class="tag">Wkrótce</span>
+            </div>
+
+        </div>
+    </main>
+
+    <footer>
+        Interaktywne Narzędzia Edukacyjne &copy; 2025
+    </footer>
+
+</body>
+
+</html>

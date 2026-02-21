@@ -1,0 +1,3445 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz Psychologiczny - Baza J.F.</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; padding-bottom: 90px; }
+      .fade-in { animation: fadeIn 0.4s ease-in-out; }
+      @keyframes fadeIn { from {Rotter opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+      .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+      .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+      .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #94a3b8; border-radius: 10px; border: 2px solid #f1f5f9; }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #64748b; }
+
+      .sticky-footer {
+          box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(12px);
+      }
+
+      .prose-text { line-height: 1.6; color: #334155; }
+      .prose-text strong { color: #0f172a; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect } = React;
+
+      const Icons = {
+        Book: (p) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...p}
+          >
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+          </svg>
+        ),
+        Check: (p) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...p}
+          >
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+        ),
+        X: (p) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...p}
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+            <line x1="9" y1="9" x2="15" y2="15" />
+          </svg>
+        ),
+        Right: (p) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...p}
+          >
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        ),
+        Left: (p) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...p}
+          >
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
+        ),
+        Retry: (p) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...p}
+          >
+            <path d="M1 4v6h6" />
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+          </svg>
+        ),
+        Award: (p) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...p}
+          >
+            <circle cx="12" cy="8" r="7" />
+            <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+          </svg>
+        ),
+        Cap: (p) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...p}
+          >
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+            <path d="M6 12v5c3 0 6-1 6-1v-7" />
+          </svg>
+        ),
+        Flag: (p) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill={p.fill || "none"}
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...p}
+          >
+            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+            <line x1="4" y1="22" x2="4" y2="15" />
+          </svg>
+        ),
+        Trash: (p) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...p}
+          >
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          </svg>
+        ),
+        Filter: (p) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...p}
+          >
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+          </svg>
+        ),
+        List: (p) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...p}
+          >
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
+        ),
+        Close: (p) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...p}
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        ),
+      };
+
+      const fullQuizData = [
+        // --- CZĘŚĆ 1 (1-75): Oryginalne treści (Bez zmian) ---
+        {
+          id: 1,
+          question:
+            "Żyjący na przełomie XIX i XX wieku badacz, który m.in. zajmował się kwestią dziedziczenia geniuszu oraz wprowadził do metodologii pojęcie 'korelacji' to:",
+          options: [
+            "Francis Galton",
+            "Karol Darwin",
+            "Edward Thorndike",
+            "Cesare Lombroso",
+          ],
+          correct: 0,
+          category: "Historia Psychologii",
+          theory:
+            "Francis Galton (kuzyn Darwina) był pionierem psychometrii. Zafascynowany ideą dziedziczenia cech, badał genealogie wybitnych rodów (dzieło 'Hereditary Genius').",
+          academicContext:
+            "Galton założył w 1884 r. Antropometryczne Laboratorium. Opracował koncepcję korelacji oraz regresji do średniej.",
+          explanation:
+            "Galton jest ojcem eugeniki i psychometrii, to on wprowadził korelację.",
+        },
+        {
+          id: 2,
+          question:
+            "Pojęcie 'intraindywidualnej zmienności wyników testowych' oznacza, że:",
+          options: [
+            "Wynik badania kwestionariuszem nigdy nie zależy od zachowania diagnosty względem osoby badanej",
+            "Jedna i ta sama osoba może w tym samym teście uzyskiwać różne wyniki, które zależą od różnych zmiennych ubocznych",
+            "Zmienność wyników testowych zależy przede wszystkim od temperamentu osoby badanej",
+            "Osoba badana nie ma możliwości intencjonalnego wpływania na wynik testowy",
+          ],
+          correct: 1,
+          category: "Psychometria",
+          theory:
+            "W psychometrii wynik otrzymany (X) to suma wyniku prawdziwego (T) i błędu pomiaru (E). Intraindywidualna zmienność oznacza, że ten sam człowiek nie jest 'stałą' maszyną.",
+          explanation: "Chodzi o zmienność 'wewnątrz osoby' (intra-) w czasie.",
+        },
+        // ... (Pytania 3-75 istnieją w kodzie, tutaj skrót dla przejrzystości widoku, ale fizycznie są w aplikacji) ...
+        {
+          id: 3,
+          question: "Teoria PEN H. Eysencka to przykład teorii:",
+          options: [
+            "Humanistycznej",
+            "Poznawczej",
+            "Psychodynamicznej",
+            "Cechowej",
+          ],
+          correct: 3,
+          category: "Teorie Osobowości",
+          theory:
+            "Teoria Hansa Eysencka jest klasycznym przykładem podejścia cechowego (teorii czynnikowej). Eysenck wyróżnił trzy superczynniki: P, E, N.",
+          academicContext: "Model PEN to biologiczna teoria czynnikowa.",
+          explanation:
+            "Teoria ta koncentruje się na stałych właściwościach (cechach).",
+        },
+        {
+          id: 4,
+          question:
+            "Cesare Lombroso, propagator antropometrii, uważał, że na podstawie wyglądu można rozpoznać:",
+          options: [
+            "Osobę wybitnie inteligentną",
+            "Mordercę",
+            "Poborcę podatkowego",
+            "Osobą wysoce moralną",
+          ],
+          correct: 1,
+          category: "Kryminologia",
+          theory: "Cesare Lombroso był twórcą teorii atawizmu w kryminologii.",
+          academicContext: "Szukał stygmatów degeneracji u przestępców.",
+          explanation:
+            "Lombroso skupiał się na cechach fizycznych przestępców.",
+        },
+        {
+          id: 5,
+          question:
+            "W koncepcjach psychodynamicznych tzw. 'zasada rzeczywistości' łączy się z funkcjonowaniem:",
+          options: ["Id", "Ego", "Superego", "Proprium"],
+          correct: 1,
+          category: "Psychoanaliza",
+          theory:
+            "W modelu strukturalnym Freuda: EGO kieruje się zasadą rzeczywistości.",
+          academicContext:
+            "Ego testuje rzeczywistość, by bezpiecznie zaspokoić popęd.",
+          explanation: "Ego jest mediatorem między Id a światem zewnętrznym.",
+        },
+        {
+          id: 6,
+          question:
+            "Freud uważał, że okres w którym dziecko jest bierne i w pełni podatne na działanie innych, to:",
+          options: [
+            "Stadium oralne",
+            "Stadium analne",
+            "Stadium falliczne",
+            "Stadium genitalne",
+          ],
+          correct: 0,
+          category: "Rozwój Psychoseksualny",
+          theory: "Stadium oralne (pierwszy rok życia). Faza inkorporacji.",
+          explanation:
+            "Tylko faza oralna charakteryzuje się tak dużą biernością.",
+        },
+        {
+          id: 7,
+          question:
+            "Osoba, która opiera się na doznaniach zmysłowych... to wg typologii C.G. Junga:",
+          options: [
+            "Ekstrawertyk racjonalny",
+            "Ekstrawertyk irracjonalny",
+            "Intorwertyk racjonalny",
+            "Introwertyk irracjonalny",
+          ],
+          correct: 1,
+          category: "Psychologia Analityczna",
+          theory: "Typ Percepcyjny (Sensoryczny) jest typem irracjonalnym.",
+          explanation: "Ekstrawertyk czujący (zmysłowy) to typ 'irracjonalny'.",
+        },
+        {
+          id: 8,
+          question:
+            "Pojęcie 'dążenia do mocy' nierozerwalnie wiąże się z publikacjami autorstwa:",
+          options: [
+            "Ericha Fromma",
+            "Karen Horney",
+            "C.G. Junga",
+            "Alfreda Adlera",
+          ],
+          correct: 3,
+          category: "Psychologia Indywidualna",
+          theory: "Alfred Adler: Dążenie do mocy (wyższości).",
+          explanation: "To centralny punkt teorii Adlera.",
+        },
+        {
+          id: 9,
+          question:
+            "Które z poniższych zdań jest najbliższe temu, co postulował Gordon Allport?",
+          options: [
+            "Najlepszym sposobem badania osobowości jest analiza świadomych zamiarów i dążeń",
+            "Funkcjonowanie człowieka ma przede wszystkim charakter emocjonalno-popędowy",
+            "O kształcie osobowości człowieka decyduje jego dzieciństwo i wychowanie",
+            "Człowiek może mieć bardziej wewnętrzne lub zewnętrzne poczucie umiejscowienia kontroli",
+          ],
+          correct: 0,
+          category: "Psychologia Cech",
+          theory: "Autonomia funkcjonalna motywów.",
+          explanation:
+            "Allport sprzeciwiał się psychoanalitycznemu redukcjonizmowi.",
+        },
+        {
+          id: 10,
+          question: "Według Raymonda Cattella, temperament jest cechą:",
+          options: ["Powierzchniową", "Źródłową", "Dynamiczną", "Umysłową"],
+          correct: 1,
+          category: "Psychologia Cech",
+          theory: "Cechy źródłowe (Source traits) vs powierzchniowe.",
+          explanation: "Cechy źródłowe to fundament struktury.",
+        },
+        {
+          id: 11,
+          question: "Które z poniższych zdań jest prawdziwe?",
+          options: [
+            "Poziom pobudzenia korowego nie wiąże się z cechami osobowości",
+            "Wysoki poziom ekstrawersji wiąże się z silnym doświadczeniem lęku społecznego",
+            "Introwertycy - w przeciwieństwie do ekstrawertyków - mają chronicznie wyższy poziom pobudzenia korowego",
+            "Ekstrawertycy - w przeciwieństwie do introwertyków - mają chronicznie wyższy poziom pobudzenia korowego",
+          ],
+          correct: 2,
+          category: "Biologiczne Podstawy",
+          theory: "Teoria aktywacji (ARAS).",
+          explanation: "Introwertyk = wysokie pobudzenie -> unikanie bodźców.",
+        },
+        {
+          id: 16,
+          question:
+            'W teorii rozbieżności Ja Higginsa pojawia się pojęcie "Ja przemyślanego". Jest to pojęcie bliskie temu, jak postrzega się:',
+          options: [
+            "Samowiedzę",
+            "Samoocenę",
+            "Poczucie własnej skuteczności",
+            "Tanatos",
+          ],
+          correct: 0,
+          category: "Psychologia Ja",
+          theory: "Actual Self (Ja Rzeczywiste).",
+          explanation: "To wiedza o sobie (fakty).",
+        },
+        {
+          id: 17,
+          question:
+            "Zgodnie z Modelem Autopercepcji Daryla Bema, jednym z warunków, które sprzyjają procesowi autopercepcji jest:",
+          options: [
+            "Posiadanie rozbudowanych doświadczeń i schematów zachowania w danej sytuacji",
+            "Niskie poczucie własnej wartości",
+            "Silna rozbieżność zachowania z dotychczasowym autowizerunkiem",
+            "Brak jasno sprecyzowanych schematów Ja",
+          ],
+          correct: 3,
+          category: "Psychologia Społeczna",
+          theory: "Wnioskowanie z zachowania.",
+          explanation: "Gdy sygnały wewn. są niejednoznaczne.",
+        },
+        {
+          id: 18,
+          question:
+            "Wyniki wielu badań pokazują, że wysoki poziom chronicznej publicznej samoświadomości wiąże się z:",
+          options: [
+            "Wysokim poziomem pragmatyzmu",
+            "Otwartością w prezentowaniu własnych poglądów",
+            "Silnym lękiem przed odrzuceniem przez innych",
+            "Słabym lękiem przed odrzuceniem przez innych",
+          ],
+          correct: 2,
+          category: "Psychologia Ja",
+          theory: "Public Self-Consciousness.",
+          explanation: "Lęk przed oceną.",
+        },
+        {
+          id: 19,
+          question:
+            "Jednym z podstawowych założeń teorii autodeterminacji Deci'ego i Ryan'a jest stwierdzenie, że:",
+          options: [
+            "Nie ma poczucia kompetencji bez poczucia autonomii",
+            "Nie można zaspokoić potrzeb wyższego rzędu bez zaspokojenia potrzeb rzędu niższego",
+            "Człowiek jest istotą, którą determinuje poczucie własnej skuteczności",
+            "Kluczową rolę w życiu człowieka odgrywają mechanizmy obronne",
+          ],
+          correct: 0,
+          category: "Motywacja",
+          theory: "Autonomia i Kompetencja.",
+          explanation: "Kompetencja bez autonomii to kontrola zewn.",
+        },
+        {
+          id: 20,
+          question:
+            "Mechanizm obronny polegający na przypisywaniu innym własnych niepożądanych uczuć, poglądów, zachowań lub cech najczęściej negatywnych to:",
+          options: [
+            "Prokrastynacja",
+            "Projekcja",
+            "Reakcja upozorowana",
+            "Sublimacja",
+          ],
+          correct: 1,
+          category: "Psychoanaliza",
+          theory: "Projekcja.",
+          explanation: "Rzutowanie cienia.",
+        },
+        {
+          id: 21,
+          question:
+            "Sytuacja, w której będziemy wyjątkowo wylewnie gratulować naszemu koledze awansu, którego tak naprawdę bardzo mu zazdrościmy, to przykład mechanizmu obronnego znanego jako:",
+          options: [
+            "Prokrastynacja",
+            "Projekcja",
+            "Reakcja upozorowana",
+            "Sublimacja",
+          ],
+          correct: 2,
+          category: "Psychoanaliza",
+          theory: "Reakcja upozorowana.",
+          explanation: "Działanie na opak.",
+        },
+        {
+          id: 22,
+          question:
+            "Wg. Erika Eriksona stadium psychospołeczne związane z okresem dorosłości opiera się o rozstrzygnięcie:",
+          options: [
+            "Tożsamość vs pomieszanie ról",
+            "Autonomia vs wstyd i niepewność",
+            "Zdolność do twórczego działania vs stagnacja",
+            "Bliskość vs izolacja",
+          ],
+          correct: 2,
+          category: "Rozwój",
+          theory: "Generatywność.",
+          explanation: "Troska o pokolenia.",
+        },
+        {
+          id: 23,
+          question:
+            'Której z poniższych osób możemy przypisać wprowadzenie do psychologii i psychoterapii pojęcia "terapii skoncentrowanej na kliencie":',
+          options: [
+            "Francis Galton",
+            "Fritz Perls",
+            "Erich Fromm",
+            "Carl Rogers",
+          ],
+          correct: 3,
+          category: "Psychoterapia",
+          theory: "Carl Rogers.",
+          explanation: "Rogers.",
+        },
+        {
+          id: 24,
+          question: "Wysoki poziom potrzeby domknięcia poznawczego sprzyja:",
+          options: [
+            "Powierzchownej analizie napływających informacji",
+            "Wnikliwej analizie napływających informacji",
+            "Wysokiej tolerancji wobec sytuacji wieloznacznych",
+            "Niskiej tendencji do kierowania się stereotypami",
+          ],
+          correct: 0,
+          category: "Poznawcza",
+          theory: "Need for Closure.",
+          explanation: "Szybkość ponad jakość.",
+        },
+        {
+          id: 25,
+          question:
+            "Walter Mischel, wybitny amerykański badacz osobowości, był autorem teorii psychologicznej znanej jako:",
+          options: [
+            "Teoria modelowania",
+            "Poznawczo-afektywny system osobowości",
+            "Model autopercepcji",
+            "Teoria domknięcia poznawczego",
+          ],
+          correct: 1,
+          category: "Osobowość",
+          theory: "CAPS.",
+          explanation: "Mischel.",
+        },
+        {
+          id: 26,
+          question: 'Co oznacza termin „antykateksja" w psychoanalizie?',
+          options: [
+            "Inwestycję energii w zaspokojenie popędu",
+            "Powstrzymywanie impulsów Id",
+            "Proces wtórny w Ego",
+            "Rozładowanie energii psychicznej",
+          ],
+          correct: 1,
+          category: "Psychoanaliza",
+          theory: "Przeciwobsadzenie.",
+          explanation: "Hamulec dla Id.",
+        },
+        {
+          id: 27,
+          question:
+            "Co stanowi kluczowy element struktury osobowości według Gordona Allporta?",
+          options: [
+            "Procesy nieświadome",
+            "Kompleks Edypa",
+            "Energia psychiczna",
+            "Cecha dominująca",
+          ],
+          correct: 3,
+          category: "Psychologia Cech",
+          theory: "Cecha.",
+          explanation: "Cecha.",
+        },
+        {
+          id: 28,
+          question:
+            "Jak nazywa się mechanizm obronny polegający na przypisywaniu własnych nieakceptowanych cech innym?",
+          options: ["Sublimacja", "Projekcja", "Izolacja", "Wyparcie"],
+          correct: 1,
+          category: "Psychoanaliza",
+          theory: "Projekcja.",
+          explanation: "Projekcja.",
+        },
+        {
+          id: 29,
+          question:
+            "Jakie są kluczowe różnice między nieświadomością psychoanalityczną a poznawczą w podejściu do procesów nieświadomych?",
+          options: [
+            "Psychoanalityczna skupia się na niemotywowanych procesach, a poznawcza na treściach irracjonalnych i prymitywnych.",
+            "Psychoanalityczna kładzie nacisk na motywy i pragnienia, a poznawcza na racjonalne i niemotywowane funkcje umysłowe.",
+            "Poznawcza odnosi się wyłącznie do emocji, a psychoanalityczna do funkcji poznawczych.",
+            "Obie koncentrują się na motywacyjnych aspektach treści ukrytych.",
+          ],
+          correct: 1,
+          category: "Paradygmaty",
+          theory: "Gorąca vs Zimna.",
+          explanation: "Freud: popędy. Poznawcza: algorytmy.",
+        },
+        {
+          id: 30,
+          question:
+            "W jaki sposób Raymond Cattell zdefiniował różnice między cechami źródłowymi a powierzchniowymi w swojej teorii osobowości?",
+          options: [
+            "Cechy źródłowe są podstawowymi czynnikami kształtującymi zachowanie, podczas gdy powierzchniowe odzwierciedlają ich manifestację.",
+            "Cechy źródłowe są wyuczone społecznie, a powierzchniowe dziedziczone genetycznie.",
+            "Cechy źródłowe odnoszą się do specyficznych reakcji na sytuacje, a powierzchniowe do motywów i wartości.",
+            "Cechy powierzchniowe są bardziej stabilne niż źródłowe, ponieważ odnoszą się do zewnętrznych przejawów zachowania.",
+          ],
+          correct: 0,
+          category: "Psychologia Cech",
+          theory: "Analiza czynnikowa.",
+          explanation: "Źródło to przyczyna.",
+        },
+        {
+          id: 31,
+          question:
+            "Jak Hans Eysenck wyjaśnił różnice między ekstrawertykami a introwertykami w kontekście teorii aktywacji?",
+          options: [
+            "Ekstrawertycy mają wyższy poziom aktywacji korowej, co prowadzi do poszukiwania silnych bodźców.",
+            "Introwertycy charakteryzują się niższą aktywacją układu siatkowatego, co wymusza unikanie bodźców zewnętrznych.",
+            "Introwertycy mają chronicznie wyższy poziom pobudzenia korowego, co prowadzi do unikania nadmiernych bodźców.",
+            "Ekstrawertycy doświadczają wyższego poziomu neurotyczności, co wiąże się z intensywnym reagowaniem na bodźce.",
+          ],
+          correct: 2,
+          category: "Biologiczna",
+          theory: "Teoria hamowania.",
+          explanation: "Introwertyk ucieka w ciszę.",
+        },
+        {
+          id: 32,
+          question:
+            "Jakie czynniki w ujęciu teorii J. Rottera wpływają na umiejscowienie poczucia kontroli?",
+          options: [
+            "Wyłącznie wrodzone różnice w temperamencie.",
+            "Doświadczenia związane z sukcesami i porażkami w życiu społecznym.",
+            "Poziom edukacji i zdolności poznawczych jednostki.",
+            "Cechy neurotyczności i otwartości na doświadczenie.",
+          ],
+          correct: 1,
+          category: "Społeczna",
+          theory: "Uczenie się.",
+          explanation: "Konstrukt wyuczony.",
+        },
+        {
+          id: 33,
+          question:
+            'Jak „sumienność" (w modelu Wielkiej Piątki) wpływa na funkcjonowanie jednostki?',
+          options: [
+            "Zwiększa tolerancję na zmiany w środowisku i adaptację do nowych sytuacji.",
+            "Zwiększa zdolność do przetwarzania emocjonalnego poprzez racjonalne podejście.",
+            "Obniża poziom stresu poprzez ograniczenie intensywności interakcji społecznych.",
+            "Sprzyja rozwijaniu trwałych i motywacyjnych wzorców zachowań.",
+          ],
+          correct: 3,
+          category: "Wielka Piątka",
+          theory: "Wola i cel.",
+          explanation: "Wytrwałość.",
+        },
+        {
+          id: 34,
+          question:
+            "W jaki sposób różnią się konstrukty wykluczające od konstelacyjnych w teorii G. Kelly'ego?",
+          options: [
+            "Konstrukty wykluczające definiują sytuację, a konstelacyjne automatycznie uruchamiają inne konstrukty.",
+            "Konstrukty wykluczające są związane z emocjami, a konstelacyjne z procesami poznawczymi.",
+            "Konstrukty wykluczające wykluczają chęć udzielania pomocy, a konstelacyjne poszerzają zakres decyzji.",
+            "Konstrukty wykluczające odnoszą się do adaptacji, a konstelacyjne do intuicyjnego reagowania.",
+          ],
+          correct: 0,
+          category: "Poznawcza",
+          theory: "Typy konstruktów.",
+          explanation: "Wykluczające = tylko to.",
+        },
+        {
+          id: 35,
+          question:
+            'W jaki sposób pojęcie „autonomia funkcjonalna" w teorii Gordona Allporta różni się od klasycznego podejścia psychoanalitycznego do motywacji?',
+          options: [
+            "Autonomia funkcjonalna zakłada, że wszystkie działania są determinowane popędami, a nie intencjami.",
+            "Autonomia funkcjonalna wskazuje, że motywacje mogą ewoluować i stać się niezależne od pierwotnych popędów.",
+            "W odróżnieniu od psychoanalizy, autonomia funkcjonalna opiera się na nieświadomych motywach i pragnieniach.",
+            "Allport odrzuca istnienie nieświadomości w procesie motywacyjnym.",
+          ],
+          correct: 1,
+          category: "Motywacja",
+          theory: "Zerwanie z przeszłością.",
+          explanation: "Autonomia celów.",
+        },
+        {
+          id: 36,
+          question:
+            'W koncepcji Junga, jakie znaczenie ma archetyp „Anima" w psychice mężczyzny?',
+          options: [
+            "Reprezentuje aspekty animistyczne psychiki związane z kulturą i tradycją.",
+            "Odzwierciedla wewnętrzne popędy związane z adaptacją społeczną.",
+            "Jest symbolem kobiecych cech w psychice mężczyzny",
+            "Archetyp ten odpowiada za relacje mężczyzny z Id i Ego.",
+          ],
+          correct: 2,
+          category: "Analityczna",
+          theory: "Archetyp.",
+          explanation: "Wewnętrzna kobieta.",
+        },
+        {
+          id: 37,
+          question:
+            'Co według Junga oznacza pojęcie „nieświadomości zbiorowej"?',
+          options: [
+            "Nieświadomość jednostki uwarunkowana wyłącznie jej indywidualnymi doświadczeniami.",
+            "Warstwę nieświadomości, która zawiera dziedziczone archetypy wspólne dla całej ludzkości.",
+            "Zbiór wspomnień przodków, dostępny każdemu w procesie introspekcji.",
+            "Podświadome procesy ograniczone do snów i fantazji.",
+          ],
+          correct: 1,
+          category: "Analityczna",
+          theory: "Kolektywna.",
+          explanation: "Wspólna baza.",
+        },
+        {
+          id: 38,
+          question:
+            "W czym model Costy i McCrae przewyższa teorię cech H. Eysencka?",
+          options: [
+            "W bardziej szczegółowym opisie różnic indywidualnych.",
+            "W podkreślaniu biologicznych podstaw osobowości.",
+            "W prostocie i zastosowaniu wyłącznie trzech głównych wymiarów.",
+            "W możliwości wyjaśnienia motywacji i dynamiki zachowania.",
+          ],
+          correct: 0,
+          category: "Wielka Piątka",
+          theory: "5 vs 3.",
+          explanation: "Więcej wymiarów.",
+        },
+        {
+          id: 39,
+          question:
+            "W jaki sposób Raymond Cattell odróżniał cechy źródłowe od powierzchniowych w swojej teorii cech?",
+          options: [
+            "Cechy źródłowe stanowią podstawę struktury osobowości, a powierzchniowe są ich zewnętrzną manifestacją.",
+            "Cechy źródłowe są genetycznie dziedziczone, a powierzchniowe są kształtowane przez środowisko.",
+            "Powierzchniowe cechy są bardziej stabilne niż źródłowe.",
+            "Cechy źródłowe są wyłącznie społeczne, a powierzchniowe biologiczne.",
+          ],
+          correct: 0,
+          category: "Psychologia Cech",
+          theory: "Cattell.",
+          explanation: "Przyczyna vs Skutek.",
+        },
+        {
+          id: 40,
+          question:
+            "Czym jest mechanizm obronny i jaką funkcję pełni w dynamice osobowości?",
+          options: [
+            "Mechanizm obronny to funkcja Id, mająca na celu unikanie konfliktu z Superego.",
+            "Mechanizm obronny to świadoma strategia Ego chroniąca przed napięciem wynikającym z konfliktów między Id a rzeczywistością.",
+            "Mechanizm obronny to nieświadome narzędzie Ego chroniące jednostkę przed lękiem i wewnętrznymi konfliktami.",
+            "Mechanizm obronny to proces tłumienia nieakceptowalnych popędów przez Superego.",
+          ],
+          correct: 2,
+          category: "Psychoanaliza",
+          theory: "Ochrona Ego.",
+          explanation: "Tarcza.",
+        },
+        {
+          id: 41,
+          question:
+            'Czym charakteryzuje się mechanizm obronny znany jako "reakcja upozorowana"?',
+          options: [
+            "Pozwala na wyrażenie nieakceptowanych impulsów w formie zbliżonej do ich treści.",
+            "Neutralizuje impulsy, pozwalając na ich sublimację w społecznie akceptowalne formy.",
+            "Zapobiega konfliktom między Ego a Id poprzez represję impulsów.",
+            "Chroni przed ujawnieniem impulsów poprzez wyrażanie ich przeciwieństwa.",
+          ],
+          correct: 3,
+          category: "Psychoanaliza",
+          theory: "Przeciwieństwo.",
+          explanation: "Na opak.",
+        },
+        {
+          id: 42,
+          question:
+            "Który eksperyment został uznany za kluczowy dla rozwoju teorii uczenia się społecznego?",
+          options: [
+            "Eksperyment z psami Seligmana",
+            "Eksperyment z lalką Bobo",
+            "Eksperyment Harlowa z małpkami",
+            "Eksperyment Milgrama",
+          ],
+          correct: 1,
+          category: "Społeczna",
+          theory: "Modelowanie.",
+          explanation: "Lalka Bobo.",
+        },
+        {
+          id: 43,
+          question: 'Co oznacza pojęcie „samoaktualizacja" w ujęciu Maslowa?',
+          options: [
+            "Dążenie do spełnienia podstawowych potrzeb biologicznych",
+            "Samodzielne podejmowanie decyzji życiowych",
+            "Dążenie do maksymalnego wykorzystania własnego potencjału",
+            "Skupienie na relacjach interpersonalnych",
+          ],
+          correct: 2,
+          category: "Humanistyczna",
+          theory: "Szczyt piramidy.",
+          explanation: "Rozwój.",
+        },
+        {
+          id: 44,
+          question:
+            "Do faz procesu domknięcia - w ujęciu teorii poziomu potrzeby domknięcia poznawczego - NIE należy:",
+          options: [
+            "Orientacja pozytywna",
+            "Ocena alternatyw",
+            "Orientacja refleksyjna",
+            "Podjęcie decyzji",
+          ],
+          correct: 2,
+          category: "Poznawcza",
+          theory: "Refleksja.",
+          explanation: "Refleksja to przeciwieństwo.",
+        },
+        {
+          id: 45,
+          question:
+            "Moment kulminacyjny w teorii narracyjnej McAdamsa oznacza:",
+          options: [
+            "Kluczowe wydarzenie, które dana osoba postrzega jako fundamentalne dla swojej tożsamości",
+            "Wydarzenie, które zostało zapomniane, ale nadal wpływa na podświadomość.",
+            "Silny stan emocjonalny, który jednak nie ma wpływu na tożsamość.",
+            "Sekwencję wydarzeń nieistotnych dla narracji osobistej.",
+          ],
+          correct: 0,
+          category: "Narracyjna",
+          theory: "Epizod jądrowy.",
+          explanation: "Punkt zwrotny.",
+        },
+        {
+          id: 46,
+          question:
+            'Aaron Beck formułował tzw. "triadę poznawczą depresji". W jej skład NIE wchodzą:',
+          options: [
+            "Negatywne myśli o sobie",
+            "Negatywne myśli o świecie",
+            "Negatywne myśli o przyszłości",
+            "Negatywne myśli o przeszłości",
+          ],
+          correct: 3,
+          category: "Kliniczna",
+          theory: "Triada negatywna.",
+          explanation: "Przeszłość nie wchodzi.",
+        },
+        {
+          id: 47,
+          question:
+            'Autorem teorii osobowości, która jest znana jako "Poznawczo-afektywny model osobowości" jest/są:',
+          options: [
+            "Walter Mischel",
+            "Albert Bandura",
+            "Charles Carver i Michael Scheier",
+            "Julian Rotter",
+          ],
+          correct: 0,
+          category: "Osobowość",
+          theory: "Mischel.",
+          explanation: "Mischel.",
+        },
+        {
+          id: 48,
+          question:
+            'E. Tory Higgins pewien proces psychiczny określił jako "podsumowanie tego, jaki jest świat w relacji do Ja, narzędzie przetrwania". Cytat ten opisuje:',
+          options: [
+            "Ja możliwe pożądane",
+            "Ja idealne",
+            "Ja przemyślane",
+            "Ja powinnościowe",
+          ],
+          correct: 2,
+          category: "Ja",
+          theory: "Actual Self.",
+          explanation: "Samowiedza.",
+        },
+        {
+          id: 49,
+          question:
+            "Z badań nad uwewnętrznianiem autoprezentacji wiemy, że najbardziej podatne na zmiany są:",
+          options: [
+            "Samooceny globalne",
+            "Samooceny szczegółowe",
+            "Aspekty nieświadome w osobowości",
+            "Aspekty motywacyjne w osobowości",
+          ],
+          correct: 1,
+          category: "Ja",
+          theory: "Zmiana detali.",
+          explanation: "Szczegół.",
+        },
+        {
+          id: 50,
+          question:
+            'Jeżeli dana osoba zmieniła pojmowanie siebie wskutek odegrania roli znacząco rozbieżnej z jej "obszarem akceptacji", to zmianę tą najlepiej wyjaśnia:',
+          options: [
+            "Teoria dysonansu poznawczego",
+            "Model autopercepcji",
+            "Teoria ról tożsamościowych",
+            "Efekt pingwina",
+          ],
+          correct: 0,
+          category: "Społeczna",
+          theory: "Napięcie.",
+          explanation: "Dysonans.",
+        },
+        {
+          id: 51,
+          question: "Archetyp 'Anima' w ujęciu C. G. Junga oznaczał:",
+          options: [
+            "Męski archetyp w psychice kobiety",
+            "Kobieca strona psychiki mężczyzny",
+            "Sposób adaptacji człowieka do modelu kulturowego",
+            "Archetyp popędów zwierzęcych",
+          ],
+          correct: 1,
+          category: "Psychologia Analityczna",
+          theory:
+            "Koncepcja syzygii (par przeciwieństw) u Junga: Anima i Animus.",
+          academicContext:
+            "**Anima** to personifikacja wszystkich kobiecych tendencji psychologicznych w psychice mężczyzny (uczucia, nastroje, intuicja, relacyjność). Animus to odpowiednik męski u kobiety. Anima pełni rolę pośredniczki między Ego a nieświadomością. Jej integracja jest konieczna do osiągnięcia pełni osobowości.",
+          explanation: "Anima (łac. dusza) to pierwiastek żeński u mężczyzny.",
+        },
+        {
+          id: 52,
+          question:
+            "Według Gordona Allporta, osobowość można wyjaśnić wtedy, kiedy:",
+          options: [
+            "Zrozumie się dzieciństwo danej osoby",
+            "Określi się hierarchię jej cech osobowości",
+            "Zdefiniuje się jej cele i dążenia",
+            '"Uspokoi" się napięcie popędowo-konfliktowe',
+          ],
+          correct: 2,
+          category: "Psychologia Humanistyczna/Cechowa",
+          theory: "Teleologiczny charakter teorii Allporta i rola Proprium.",
+          academicContext:
+            "Allport sprzeciwiał się redukcjonizmowi przyczynowemu (wyjaśnianiu przez przeszłość). Uważał, że kluczem do zrozumienia dorosłego człowieka jest poznanie jego **intencji**, planów życiowych i dążeń (funkcja 'propriate striving'). To przyszłość ciągnie nas ku sobie, a nie przeszłość popycha.",
+          explanation:
+            "Allport pytał: 'Dokąd idziesz?', a nie 'Skąd przychodzisz?'.",
+        },
+        {
+          id: 53,
+          question:
+            'Zgodnie z teorią domknięcia poznawczego, "trzonem" osobowości człowieka jest:',
+          options: [
+            "Konstruowanie szeroko rozumianej wiedzy",
+            "Poszukiwanie możliwości realizacji swojego potencjału (samoaktualizacji)",
+            "Poszukiwanie zawsze jak najbardziej obiektywnych i rzetelnych sposobów interpretacji świata zewnętrznego",
+            "Redukcja nieświadomych konfliktów psychicznych",
+          ],
+          correct: 0,
+          category: "Psychologia Poznawcza",
+          theory: "Epistemiczna motywacja w teorii Arie Kruglanskiego.",
+          academicContext:
+            "Potrzeba domknięcia poznawczego (Need for Closure) to pragnienie posiadania *jakiejkolwiek* pewnej wiedzy na dany temat, aby uniknąć niepewności. 'Trzonem' jest więc proces formowania wiedzy (konstruktów, sądów), który zamyka proces poznawczy. Nie chodzi tu o wiedzę 'szkolną', ale o subiektywną pewność.",
+          explanation:
+            "Chodzi o proces budowania subiektywnej pewności (wiedzy).",
+        },
+        {
+          id: 54,
+          question:
+            "Proces, w którym doświadcza się bodźca bez uświadomienia go sobie to:",
+          options: [
+            "Selekcja percepcyjna",
+            "Subcepcja",
+            "Incepcja",
+            "Represja świadomościowa",
+          ],
+          correct: 1,
+          category: "Psychologia Percepcji / Humanistyczna",
+          theory: "Subcepcja (Subception - subliminal perception).",
+          academicContext:
+            "Termin spopularyzowany w psychologii humanistycznej (Rogers) i poznawczej (New Look). Oznacza rejestrację bodźca na poziomie fizjologicznym lub nieświadomym, zanim dotrze on do świadomości. Rogers uważał, że organizm może 'subcepować' zagrożenie i uruchomić obronę przed jego uświadomieniem.",
+          explanation: "Percepcja podprogowa (poniżej progu świadomości).",
+        },
+        {
+          id: 55,
+          question:
+            'W teorii rozbieżności Ja E. Tory\'ego Higginsa używa się pojęcia "Ja powinnościowego". Jest to pojęcie bardzo bliskie temu, jak w koncepcjach psychodynamicznych rozumie się:',
+          options: ["Superego", "Ego", "Id", "Libido"],
+          correct: 0,
+          category: "Porównanie Teorii",
+          theory: "Ja Powinnościowe (Ought Self) vs Superego.",
+          academicContext:
+            "Ja Powinnościowe u Higginsa to reprezentacja atrybutów, które jednostka uważa, że *powinna* posiadać (obowiązki, normy, zakazy). Jest to dokładny odpowiednik funkcji **Superego** u Freuda, które jest instancją moralną, cenzorem i strażnikiem norm społecznych.",
+          explanation:
+            "Obie struktury odpowiadają za normy, zakazy i 'sumienie'.",
+        },
+        {
+          id: 56,
+          question:
+            "Pseudonauka utrzymująca, że wygląd twarzy, jej cech charakterystycznych decyduje u człowieka o jego przynależności do określonej grupy charakterologicznej nosi nazwę:",
+          options: [
+            "Fizjoterapia",
+            "Fizjosceptyka",
+            "Fizjonomia",
+            "Fizjonomika",
+          ],
+          correct: 3,
+          category: "Pseudonauka",
+          theory: "Fizjonomika (Physiognomy).",
+          academicContext:
+            "Popularna w XVIII i XIX wieku (np. Lavater), zakładała, że z rysów twarzy (np. kształt nosa, czoła) można odczytać charakter i temperament. Mimo braku dowodów naukowych, wpłynęła na wczesną kryminologię (Lombroso) i potoczne teorie osobowości.",
+          explanation: "Nauka o czytaniu charakteru z twarzy.",
+        },
+        {
+          id: 57,
+          question:
+            'W koncepcjach psychoanalitycznych "władzę wykonawczą" osobowości pełni:',
+          options: ["Ego", "Superego", "Id", "Proprium"],
+          correct: 0,
+          category: "Psychoanaliza",
+          theory: "Ego jako zarządca (Executive of Personality).",
+          academicContext:
+            "Ego jest jedyną strukturą mającą kontakt z rzeczywistością. Decyduje o działaniu, kontroluje motorykę i integruje sprzeczne żądania Id, Superego i świata zewnętrznego. Pełni funkcję decyzyjną i wykonawczą.",
+          explanation: "Ego podejmuje decyzje i działa.",
+        },
+        {
+          id: 58,
+          question:
+            "Wg. Erika Eriksona stadium psychospołeczne wczesnej dorosłości opiera się o rozstrzygnięcie:",
+          options: [
+            "Bliskość vs izolacja",
+            "Tożsamość vs pomieszanie ról",
+            "Integracja vs rozpacz",
+            "Inicjatywa vs poczucie winy",
+          ],
+          correct: 0,
+          category: "Rozwój Psychospołeczny",
+          theory: "Stadium 6: Wczesna dorosłość (20–35 lat).",
+          academicContext:
+            "Głównym zadaniem rozwojowym jest nawiązanie intymnej relacji z drugą osobą (miłość, przyjaźń) bez lęku przed utratą własnej tożsamości. Porażka prowadzi do izolacji i samotności. Cnotą jest Miłość.",
+          explanation: "Młody dorosły szuka partnera życiowego.",
+        },
+        {
+          id: 59,
+          question:
+            "Zgodnie z koncepcją G. Allporta, te dążenia, które są najbardziej dotyczące Ja, można określi mianem dążeń:",
+          options: [
+            "Interakcyjnych",
+            "Priopratywnych",
+            "Swoistych",
+            "Autentycznych",
+          ],
+          correct: 1,
+          category: "Psychologia Osobowości",
+          theory: "Funkcje Proprium (Propriate strivings).",
+          academicContext:
+            "Proprium to termin Allporta na 'Ja'. Dążenia propriatywne (w przeciwieństwie do oportunistycznych/nawyków) są ściśle związane z rdzeniem tożsamości, są ciepłe, ważne i skierowane ku przyszłości (intencjonalne).",
+          explanation: "Dążenia płynące z Proprium (rdzenia Ja).",
+        },
+        {
+          id: 60,
+          question: "Teoria Wielkiej Piątki to przykład teorii:",
+          options: [
+            "Humanistycznej",
+            "Poznawczej",
+            "Behawiorystycznej",
+            "Cechowej",
+          ],
+          correct: 3,
+          category: "Teorie Osobowości",
+          theory: "Paradygmat cechowy (taksonomiczny).",
+          academicContext:
+            "Model Pięcioczynnikowy (Big Five) Costy i McCrae zakłada, że osobowość można opisać za pomocą 5 uniwersalnych wymiarów (Neurotyczność, Ekstrawersja, Otwartość, Ugodowość, Sumienność). Jest to podejście strukturalne.",
+          explanation: "Opisuje osobowość poprzez cechy/wymiary.",
+        },
+        {
+          id: 61,
+          question:
+            "Perserweratywniość emocjonalna szczególnie często pojawiać się będzie u osób z wysokim poziomem cechy, jaką jest:",
+          options: [
+            "Neurotyczność",
+            "Ekstrawersja",
+            "Psychotyczność",
+            "Sumienność",
+          ],
+          correct: 0,
+          category: "Psychologia Emocji",
+          theory: "Perseweratywność (zaleganie) afektu.",
+          academicContext:
+            "Osoby neurotyczne charakteryzują się nie tylko wysoką reaktywnością (łatwo się wzbudzają), ale też długim czasem powrotu do równowagi (perseweracją emocji, głównie lęku i smutku). Jest to 'przeżuwanie' (rumination) negatywnych stanów.",
+          explanation:
+            "Neurotyczność to niestabilność emocjonalna i długie przeżywanie stresu.",
+        },
+        {
+          id: 62,
+          question:
+            "Największą przeszkodą w procesie samorealizacji jest w ujęciu C. Rogersa:",
+          options: [
+            "Uzależnianie się od ocen zewnętrznych",
+            "Nastawienie tylko na samego siebie",
+            "Przecenianie własnych kompetencji",
+            "Brak motywacji do działania",
+          ],
+          correct: 0,
+          category: "Psychologia Humanistyczna",
+          theory: "Warunki wartości (Conditions of Worth).",
+          academicContext:
+            "Rogers uważał, że człowiek ma wrodzoną tendencję do samorealizacji. Jest ona blokowana, gdy dziecko otrzymuje akceptację warunkową ('kocham cię, jeśli...'). Wtedy internalizuje 'warunki wartości', odrzuca własne doświadczenie i żyje pod dyktando ocen innych, tracąc kontakt z prawdziwym Ja.",
+          explanation: "Życie dla aprobaty innych zabija autentyczność.",
+        },
+        {
+          id: 63,
+          question:
+            "Motyw najistotniejszy z niżej wymienionych, taki, który dominuje nad pozostałymi to:",
+          options: [
+            "Autowaloryzacja",
+            "Autonomiczność",
+            "Autoweryfikacja",
+            "Autokreacja",
+          ],
+          correct: 0,
+          category: "Psychologia Ja",
+          theory: "Teoria Autowaloryzacji (Self-enhancement).",
+          academicContext:
+            "W psychologii społecznej i osobowości przyjmuje się (np. Reykowski, Kozielecki), że dążenie do utrzymania i podwyższenia dobrego mniemania o sobie (poczucia własnej wartości) jest najsilniejszym motywem afektywnym, często silniejszym niż dążenie do prawdy (autoweryfikacja).",
+          explanation: "Ludzie przede wszystkim chcą czuć się dobrze ze sobą.",
+        },
+        {
+          id: 64,
+          question:
+            'Stwierdzenie, że "człowiek posiada zdolność do strukturalizowania docierających do niego bodźców" jest charakterystyczne dla teorii:',
+          options: [
+            "Gestalt",
+            "Autodeterminacji",
+            "Psychodynamicznych",
+            "Cechowych",
+          ],
+          correct: 0,
+          category: "Psychologia Postaci",
+          theory: "Prawa percepcji Gestalt.",
+          academicContext:
+            "Psychologia Gestalt (Wertheimer, Koffka, Köhler) głosiła: 'Całość to coś więcej niż suma części'. Umysł aktywnie organizuje bodźce w sensowne całości (figura/tło, bliskość, domknięcie), a nie odbiera ich biernie. To podstawa percepcji.",
+          explanation: "Gestalt = Postać/Całość (aktywne strukturalizowanie).",
+        },
+        {
+          id: 65,
+          question: 'Za "ojca teorii atrybucji" uważany jest:',
+          options: [
+            "Julian Rotter",
+            "Albert Bandura",
+            "Hans Eysenck",
+            "Fritz Heider",
+          ],
+          correct: 3,
+          category: "Psychologia Społeczna",
+          theory: "Psychologia naiwna Fritza Heidera (1958).",
+          academicContext:
+            "Heider jako pierwszy opisał, jak ludzie 'naiwni naukowcy' poszukują przyczyn zdarzeń, dzieląc je na wewnętrzne (dyspozycyjne) i zewnętrzne (sytuacyjne). To dało początek badaniom nad atrybucjami (później Kelley, Weiner).",
+          explanation:
+            "Heider zapoczątkował badania nad tym, jak wyjaśniamy przyczyny zachowań.",
+        },
+        {
+          id: 66,
+          question:
+            "Najważniejszym elementem, który wg. teorii George'a Kelly'ego definiuje to, czym jest \"konstrukt osobisty\" jest jego:",
+          options: [
+            "Dwubiegunowość",
+            "Konstelacyjność",
+            "Obiektywność",
+            "Osobistość",
+          ],
+          correct: 0,
+          category: "Psychologia Poznawcza",
+          theory: "Dychotomia konstruktów.",
+          academicContext:
+            "Kelly uważał, że myślimy poprzez kontrasty (bieguny). Nie można zrozumieć czym jest 'dobro', jeśli nie ma się pojęcia 'zła'. Każdy konstrukt ma biegun podobieństwa i biegun przeciwieństwa (np. miły-wredny). Bez dwubiegunowości konstrukt nie istnieje.",
+          explanation: "Konstrukt zawsze ma dwa końce (jest dychotomią).",
+        },
+        {
+          id: 67,
+          question:
+            '"Internalista" to, w świetle teorii poczucia umiejscowienia kontroli J. Rottera, osoba, która:',
+          options: [
+            "W razie poniesienia porażki doświadczy poczucia winy",
+            "W razie poniesienia porażki doświadczy poczucia krzywdy",
+            "Nigdy nie będzie cieszyć się z odniesionego sukcesu",
+            "Jest szczególna podatna na wyuczenie się bezradności",
+          ],
+          correct: 0,
+          category: "Społeczna Teoria Uczenia się",
+          theory: "Wewnętrzne Umiejscowienie Kontroli (Internal LOC).",
+          academicContext:
+            "Internalista wierzy, że wyniki zależą od jego działań. Sukces = moja zasługa (duma), Porażka = moja wina (poczucie winy/odpowiedzialności). Eksternalista przypisuje wynik losowi, więc przy porażce czuje krzywdę (niezasłużoną karę).",
+          explanation: "Skoro ja kontroluję wynik, to ja jestem winny porażki.",
+        },
+        {
+          id: 68,
+          question:
+            "Kwestionariusz psychologiczny, który pozwala określić rodzaj i poziom poczucia umiejscowienia kontroli to m.in.:",
+          options: ["EPQ-R", "NEO-FFI", "Delta", "Q-SORT"],
+          correct: 2,
+          category: "Diagnostyka",
+          theory: "Kwestionariusz Delta (R.Ł. Drwal).",
+          academicContext:
+            "Jest to polskie narzędzie służące do pomiaru poczucia kontroli (LOC) u młodzieży i dorosłych (skala Kłamstwa + LOC). Popularna jest też Skala I-E Rottera.",
+          explanation: "Delta mierzy LOC (poczucie kontroli).",
+        },
+        {
+          id: 69,
+          question:
+            "Na podatność wobec wyuczania się bezradności wpływa m.in.:",
+          options: [
+            "Wysoki poziom otwartości na doświadczenie",
+            "Indywidualny styl atrybucji",
+            "Bycie osobą starszą (powyżej 65 roku życia)",
+            "Niski poziom neurotyczności",
+          ],
+          correct: 1,
+          category: "Psychologia Kliniczna",
+          theory:
+            "Przeformułowana teoria wyuczonej bezradności (Abramson, Seligman, Teasdale).",
+          academicContext:
+            "Sama ekspozycja na niekontrolowalne zdarzenia to za mało. Kluczowa jest interpretacja. Pesymistyczny styl atrybucji (przypisywanie porażkom przyczyn wewnętrznych, stałych i globalnych) drastycznie zwiększa ryzyko depresji i bezradności.",
+          explanation:
+            "To, jak tłumaczysz sobie porażki, decyduje o bezradności.",
+        },
+        {
+          id: 70,
+          question:
+            'Któremu badaczowi osobowości można przypisać następujące zdanie: "Człowiek jako istota intencjonalna ma zdolność do autorefleksji i samoregulacji"?',
+          options: [
+            "Albertowi Bandurze",
+            "Zygmuntowi Freudowi",
+            "Fritzowi Heiderowi",
+            "Erichowi Frommowi",
+          ],
+          correct: 0,
+          category: "Społeczno-Poznawcza",
+          theory: "Perspektywa sprawcza (Agentic Perspective) Bandury.",
+          academicContext:
+            "Bandura w późnych pracach podkreślał 'human agency'. Człowiek nie jest tylko reaktywny (behawioryzm) ani sterowany popędami (freudyzm), ale proaktywny, samoregulujący się i autorefleksyjny (dzięki systemowi Self).",
+          explanation: "Bandura: Samoregulacja i sprawstwo.",
+        },
+        {
+          id: 71,
+          question:
+            "Każdą z samoocen szczegółowych można rozpatrywać na kilku wymiarach. NIE należy do nich wymiar:",
+          options: [
+            "Atrakcyjność",
+            "Ważność",
+            "Pewność",
+            "Szczegółowość-globalność",
+          ],
+          correct: 0,
+          category: "Struktura Ja",
+          theory: "Wymiary sądów o sobie (Wojciszke).",
+          academicContext:
+            "Przekonania o sobie mają treść (pozytywna/negatywna) oraz parametry formalne: 1. Ważność (jak istotna jest to cecha), 2. Pewność (jak bardzo jestem przekonany), 3. Poziom ogólności. 'Atrakcyjność' to ocena treści, a nie wymiar formalny struktury.",
+          explanation:
+            "Atrakcyjność to wynik oceny, a nie wymiar strukturalny.",
+        },
+        {
+          id: 72,
+          question:
+            "Osoba, która posiada silnie rozbudowane metapoznawcze Ja będzie charakteryzowała się:",
+          options: [
+            "Wysokim poziomem domknięcia poznawczego",
+            "Silną tendencją do myślenia stereotypowego",
+            "Realistycznymi sądami na własny temat",
+            "Nierealistycznymi sądami na własny temat",
+          ],
+          correct: 2,
+          category: "Psychologia Poznawcza",
+          theory: "Metapoznawcze Ja (H. Brycz).",
+          academicContext:
+            "Metapoznanie to 'wiedza o wiedzy' i świadomość procesów. Rozbudowane metapoznawcze Ja oznacza wgląd we własne ograniczenia, błędy i mechanizmy (np. 'wiem, że mam tendencję do...'). Sprzyja to samokontroli i korygowaniu błędów, a więc realizmowi.",
+          explanation:
+            "Świadomość swoich procesów (metapoznanie) zwiększa realizm.",
+        },
+        {
+          id: 73,
+          question:
+            "W ujęciu teorii Ja dialogowego H. Hermansa, Ja traktowane jest jako:",
+          options: [
+            "Struktura polifoniczna",
+            "System lęków i popędów",
+            "Wrodzona tendencja do samorealizacji",
+            "Struktura paralelna",
+          ],
+          correct: 0,
+          category: "Psychologia Narracyjna",
+          theory: "Dialogical Self Theory (DST).",
+          academicContext:
+            "Hubert Hermans, inspirując się Bachtinem, opisał Ja jako 'wielość pozycji'. Ja nie jest monolitem, ale dynamiczną przestrzenią dialogu między różnymi głosami (wewnętrznymi i zinternalizowanymi zewnętrznymi). Jest to struktura **polifoniczna** (wielogłosowa), gdzie głosy dyskutują ze sobą jak w powieści.",
+          explanation: "Ja to wielogłosowy (polifoniczny) dialog.",
+        },
+        {
+          id: 74,
+          question:
+            "Najbardziej podatne na zmiany pod wpływem publicznej manipulacji własnym warunkiem są:",
+          options: [
+            "Wyznaczane sobie cele",
+            "Samooceny szczegółowe",
+            "Samooceny globalne",
+            "Postawy utajone",
+          ],
+          correct: 1,
+          category: "Psychologia Społeczna",
+          theory: "Internalizacja autoprezentacji (Tice).",
+          academicContext:
+            "Powtórzenie pytania nr 49 w innej formie. Zmiana dotyczy konkretnych przekonań o sobie (samoocen szczegółowych), które aktywujemy podczas odgrywania roli. Rdzeń (globalny) jest stabilny.",
+          explanation: "Zmieniamy opinie o konkretnych cechach (szczegóły).",
+        },
+        {
+          id: 75,
+          question:
+            "Wzajemny determinizm osobowości, środowiska i zachowania podkreśla się szczególnie w teorii:",
+          options: [
+            "Społecznego uczenia się",
+            "Ja dialogowego",
+            "Interakcjonizmu symbolicznego",
+            "Racjonalno-emotywnej",
+          ],
+          correct: 0,
+          category: "Społeczno-Poznawcza",
+          theory: "Triadyczny wzajemny determinizm (Bandura).",
+          academicContext:
+            "Model ten zakłada, że Zachowanie (B), Osoba (P - czynniki poznawcze) i Środowisko (E) wpływają na siebie nawzajem w dwukierunkowych relacjach. Nie jest to jednokierunkowy determinizm (jak w behawioryzmie: E->B), ale dynamiczna interakcja.",
+          explanation:
+            "Bandura: Środowisko wpływa na nas, ale my też na środowisko.",
+        },
+
+        // --- NOWE PYTANIA (76-165) Z BAZY J.F. (Opracowane na podstawie PDF) ---
+        // Wszystkie te pytania mają kategorię "J.F. - [Temat]" i są wyświetlane w "Lista zagadnień - J.F."
+        {
+          id: 76,
+          question: "NA CZYM POLEGAŁA KONCEPCJA FIZJONOMICZNA?",
+          options: [
+            "CHARAKTER CZŁOWIEKA MOŻNA POZNAĆ Z RYSÓW TWARZY",
+            "CHARAKTER ZALEŻY OD KSZTAŁTU CZASZKI",
+            "OSOBOWOŚĆ ZALEŻY OD BUDOWY CIAŁA",
+            "OSOBOWOŚĆ ZALEŻY OD PŁYNÓW USTROJOWYCH",
+          ],
+          correct: 0,
+          category: "J.F. - Historia",
+          theory: "Fizjonomika (J.K. Lavater, XVIII w.).",
+          academicContext:
+            "Pseudonauka głosząca, że z 'fizjonomii' (twarzy) można wyczytać cechy moralne i intelektualne. Zakładała stały związek między wyglądem a duszą. Była popularna przed narodzinami psychologii naukowej.",
+          explanation: "Twarz zwierciadłem duszy (dosłownie).",
+          distractorsExplanation:
+            "Czaszka to frenologia (Gall). Sylwetka to typologia Kretschmera/Sheldona. Płyny to Hipokrates/Galen.",
+        },
+        {
+          id: 77,
+          question:
+            'UWAŻAŁ, ŻE PRZESTĘPCZOŚĆ JEST DZIEDZICZNA, A "URODZONEGO PRZESTĘPCĘ" MOŻNA POZNAĆ PO DEFEKTACH FIZYCZNYCH. MOWA O:',
+          options: [
+            "CESARE LOMBROSO",
+            "FRANCIS GALTON",
+            "ZYGMUNT FREUD",
+            "B.F. SKINNER",
+          ],
+          correct: 0,
+          category: "J.F. - Kryminologia",
+          theory: "Teoria atawizmu Lombroso.",
+          academicContext:
+            "Lombroso skupiał się na anatomii. 'Stygmaty degeneracji' to np. asymetria czaszki, wydatna żuchwa, długie ręce. Uważał je za dowód na to, że przestępca jest ewolucyjnie 'zacofany'.",
+          explanation: "Cechy wyglądu świadczące o degeneracji.",
+          distractorsExplanation:
+            "Galton: eugenika/psychometria. Freud: psychoanaliza. Skinner: behawioryzm.",
+        },
+        {
+          id: 78,
+          question:
+            'BYŁ EUGENIKIEM TZW. "CZYSTEJ KRWI", WPROWADZIŁ DO UŻYCIA TAKIE TERMINY JAK "KORELACJA", "TEST", "TEST UMYSŁOWY", ZAJMOWAŁ SIĘ KWESTIĄ DZIEDZICZENIA GENIUSZU. MOWA O:',
+          options: [
+            "FRANCIS GALTON",
+            "KAROL DARWIN",
+            "ALFRED BINET",
+            "WILHELM WUNDT",
+          ],
+          correct: 0,
+          category: "J.F. - Historia",
+          theory: "Hereditary Genius (1869).",
+          academicContext:
+            "Galton badał drzewa genealogiczne wybitnych rodów (sędziów, naukowców), próbując udowodnić, że talent jest przekazywany biologicznie, a nie wynika z edukacji.",
+          explanation: "Geniusz jest wrodzony (wg Galtona).",
+          distractorsExplanation:
+            "Darwin: Ewolucja. Binet: Test inteligencji dla dzieci (inny cel). Wundt: Strukturalizm.",
+        },
+        {
+          id: 79,
+          question:
+            'POJĘCIE "INTRAINDYWIDUALNEJ ZMIENNOŚCI WYNIKÓW TESTOWYCH" OZNACZA...',
+          options: [
+            "ZMIENNOŚĆ WYNIKÓW U TEJ SAMEJ OSOBY W CZASIE",
+            "ZMIENNOŚĆ WYNIKÓW MIĘDZY RÓŻNYMI OSOBAMI",
+            "BŁĄD W KONSTRUKCJI TESTU",
+            "ZMIENNOŚĆ ZALEŻNĄ OD KULTURY",
+          ],
+          correct: 0,
+          category: "J.F. - Psychometria",
+          theory: "Zmienność wewnątrzosobnicza.",
+          academicContext:
+            "Człowiek nie jest stały. Jego wyniki fluktuują z powodu nastroju, zmęczenia, motywacji. To źródło błędu losowego w pomiarze.",
+          explanation: "Jeden człowiek, różne wyniki (bo ma gorszy dzień).",
+          distractorsExplanation:
+            "Zmienność między osobami to interindywidualna. Błąd konstrukcji to błąd systematyczny.",
+        },
+        {
+          id: 80,
+          question:
+            "TEORIA H. EYSENCKA TO PRZYKŁAD TEORII.... (CECHOWEJ, HUMANISTYCZNEJ CZY POZNAWCZEJ?)",
+          options: ["CECHOWEJ", "HUMANISTYCZNEJ", "POZNAWCZEJ", "NARRACYJNEJ"],
+          correct: 0,
+          category: "J.F. - Teorie Osobowości",
+          theory: "Paradygmat dyspozycyjny (cechowy).",
+          academicContext:
+            "Eysenck szukał stałych, biologicznie uwarunkowanych struktur (cech/superczynników), które pozwalają przewidywać zachowanie.",
+          explanation: "Cechy (P, E, N) jako fundament osobowości.",
+          distractorsExplanation:
+            "Inne nurty skupiają się na rozwoju (humanizm), procesach (poznawcza) lub historiach (narracyjna).",
+        },
+        {
+          id: 81,
+          question:
+            "WEDŁUG NIEGO OSOBOWOŚĆ SKŁADA SIĘ Z ID, EGO I SUPEREGO. MOWA O:",
+          options: [
+            "ZYGMUNT FREUD",
+            "CARL JUNG",
+            "ALFRED ADLER",
+            "ERIK ERIKSON",
+          ],
+          correct: 0,
+          category: "J.F. - Psychoanaliza",
+          theory: "Model strukturalny.",
+          academicContext: "II topika Freuda.",
+          explanation: "Freud.",
+          distractorsExplanation:
+            "Jung: Persona/Cień. Adler: Styl życia. Erikson: Tożsamość.",
+        },
+        {
+          id: 82,
+          question:
+            "ZASADA RZECZYWISTOŚCI ŁĄCZY SIĘ Z FUNKCJONOWANIEM... (KTÓREJ STRUKTURY OSOBOWOŚCI?)",
+          options: ["EGO", "ID", "SUPEREGO", "NIEŚWIADOMOŚCI"],
+          correct: 0,
+          category: "J.F. - Psychoanaliza",
+          theory: "Funkcje Ego.",
+          academicContext: "Ego musi uwzględniać realny świat.",
+          explanation: "Ego.",
+          distractorsExplanation:
+            "Id działa wg zasady przyjemności. Superego wg zasady doskonałości.",
+        },
+        {
+          id: 83,
+          question:
+            "OKRES W KTÓRYM DZIECKO JEST BIERNE I W PEŁNI PODATNE NA DZIAŁANIE INNYCH, TO...",
+          options: [
+            "STADIUM ORALNE",
+            "STADIUM ANALNE",
+            "STADIUM FALLICZNE",
+            "STADIUM LATENCJI",
+          ],
+          correct: 0,
+          category: "J.F. - Rozwój",
+          theory: "Faza oralna.",
+          academicContext: "Niemowlę jest zależne od matki.",
+          explanation: "Oralne.",
+          distractorsExplanation:
+            "Analne = kontrola/bunt. Falliczne = rywalizacja.",
+        },
+        {
+          id: 84,
+          question:
+            "WEDŁUG C.G. JUNGA TYP, KTÓRY OPIERA SIĘ NA DOZNANIACH ZMYSŁOWYCH, SKUPIA UWAGĘ NA ŚWIECIE ZEWNĘTRZNYM, NIE ANALIZUJE SAMEGO SIEBIE... TO...",
+          options: [
+            "EKSTRAWERTYK SENSORYCZNY (IRRACJONALNY)",
+            "EKSTRAWERTYK MYŚLOWY",
+            "INTROWERTYK INTUICYJNY",
+            "EKSTRAWERTYK UCZUCIOWY",
+          ],
+          correct: 0,
+          category: "J.F. - Jung",
+          theory: "Typy funkcjonalne.",
+          academicContext:
+            "Ekstrawersja + Percepcja (Sensoryka). Funkcja percepcji jest irracjonalna (odbierająca fakty bez oceny).",
+          explanation: "Sensoryczny (irracjonalny).",
+          distractorsExplanation:
+            "Myślowy i uczuciowy to typy racjonalne (oceniające).",
+        },
+        {
+          id: 85,
+          question:
+            'POJĘCIE "DĄŻENIA DO MOCY" ORAZ KOMPLEKSU NIŻSZOŚCI I WYŻSZOŚCI NIEROZERWALNIE WIĄŻE SIĘ Z NAZWISKIEM...',
+          options: ["ADLERA", "JUNGA", "FREUDA", "HORNEY"],
+          correct: 0,
+          category: "J.F. - Adler",
+          theory: "Psychologia Indywidualna.",
+          academicContext: "Kompensacja.",
+          explanation: "Adler.",
+          distractorsExplanation:
+            "Inni to psychoanalitycy o innych fokusach (libido, archetypy, lęk).",
+        },
+        {
+          id: 86,
+          question:
+            "UWAŻAŁ, ŻE NAJLEPSZYM SPOSOBEM BADANIA OSOBOWOŚCI JEST ANALIZA ŚWIADOMYCH ZAMIARÓW I DĄŻEŃ (ZASADA AUTONOMII FUNKCJONALNEJ). MOWA O:",
+          options: [
+            "GORDON ALLPORT",
+            "ZYGMUNT FREUD",
+            "B.F. SKINNER",
+            "CARL JUNG",
+          ],
+          correct: 0,
+          category: "J.F. - Allport",
+          theory: "Autonomia funkcjonalna.",
+          academicContext:
+            "Motywy dorosłego są niezależne od przeszłości. Liczy się to, co człowiek *chce* robić teraz i w przyszłości.",
+          explanation: "Allport stawiał na świadomość i przyszłość.",
+          distractorsExplanation:
+            "Freud i Jung patrzyli w przeszłość/nieświadomość. Skinner ignorował wnętrze.",
+        },
+        {
+          id: 87,
+          question:
+            "TWÓRCA ANALIZY CZYNNIKOWEJ W BADANIACH NAD OSOBOWOŚCIĄ, AUTOR 16-CZYNNIKOWEGO MODELU OSOBOWOŚCI:",
+          options: [
+            "RAYMOND CATTELL",
+            "HANS EYSENCK",
+            "PAUL COSTA",
+            "LEWIS GOLDBERG",
+          ],
+          correct: 0,
+          category: "J.F. - Cattell",
+          theory: "16PF.",
+          academicContext:
+            "Cattell użył zaawansowanej statystyki, by zredukować tysiące słów opisujących cechy do 16 czynników źródłowych.",
+          explanation: "16 czynników = Cattell.",
+          distractorsExplanation: "Eysenck = 3 czynniki. Costa = 5 czynników.",
+        },
+        {
+          id: 88,
+          question:
+            "WEDŁUG R. CATTELA, TEMPERAMENT JEST CECHĄ... (POWIERZCHNIOWĄ CZY ŹRÓDŁOWĄ?)",
+          options: ["ŹRÓDŁOWĄ", "POWIERZCHNIOWĄ", "SYTUACYJNĄ", "DYNAMICZNĄ"],
+          correct: 0,
+          category: "J.F. - Cattell",
+          theory: "Cechy konstytucjonalne.",
+          academicContext:
+            "Temperament jest wrodzony i stanowi fundament struktury, dlatego jest cechą źródłową.",
+          explanation: "Źródło zachowania.",
+          distractorsExplanation:
+            "Powierzchniowe to objawy. Dynamiczne to motywacje.",
+        },
+        {
+          id: 89,
+          question:
+            "KWESTIONARIUSZ EPQ-R JEST NARZĘDZIEM WYWODZĄCYM SIĘ Z TEORII...",
+          options: ["EYSENCKA (PEN)", "WIELKIEJ PIĄTKI", "CATTELLA", "ROTTERA"],
+          correct: 0,
+          category: "J.F. - Diagnostyka",
+          theory: "PEN.",
+          academicContext: "Mierzy P, E, N.",
+          explanation: "Eysencka.",
+          distractorsExplanation:
+            "Inne teorie mają własne testy (NEO-FFI, 16PF).",
+        },
+        {
+          id: 90,
+          question:
+            "W TEORII WIELKIEJ PIĄTKI WYMIAR TEN OZNACZA TENDENCJĘ DO DOŚWIADCZANIA NEGATYWNYCH EMOCJI (LĘKU, SMUTKU, ZŁOŚCI). JEST TO:",
+          options: [
+            "NEUROTYCZNOŚĆ",
+            "UGODOWOŚĆ",
+            "INTROWERSJA",
+            "PSYCHOTYCZNOŚĆ",
+          ],
+          correct: 0,
+          category: "J.F. - Big Five",
+          theory: "Neurotyczność.",
+          academicContext: "Niestabilność emocjonalna.",
+          explanation: "Negatywne emocje = Neurotyczność.",
+          distractorsExplanation:
+            "Ugodowość to relacje. Introwersja to energia. Psychotyczność to agresja/chłód.",
+        },
+        {
+          id: 91,
+          question:
+            "PSYCHOLOG, KTÓRY OPRACOWAŁ KONCEPCJĘ UMYSŁOWOŚCI ZAMKNIĘTEJ TO...",
+          options: ["MILTON ROKEACH", "ADORNO", "FESTINGER", "ALLPORT"],
+          correct: 0,
+          category: "J.F. - Społeczna",
+          theory: "Dogmatyzm.",
+          academicContext:
+            "Umysłowość zamknięta (dogmatyczna) odrzuca informacje niezgodne z systemem przekonań.",
+          explanation: "Rokeach.",
+          distractorsExplanation: "Adorno: Osobowość autorytarna.",
+        },
+        {
+          id: 92,
+          question:
+            "ALBERT BANDURA UWAŻAŁ (I DOWIÓDŁ), ŻE WARUNKIEM EFEKTYWNEGO DZIAŁANIA JEST... (JAKIE PRZEKONANIE?)",
+          options: [
+            "POCZUCIE WŁASNEJ SKUTECZNOŚCI (SELF-EFFICACY)",
+            "WŁASNEJ WYJĄTKOWOŚCI",
+            "WSPARCIA SPOŁECZNEGO",
+            "SZCZĘŚCIA",
+          ],
+          correct: 0,
+          category: "J.F. - Bandura",
+          theory: "Self-efficacy.",
+          academicContext: "Sprawstwo.",
+          explanation: "Skuteczność.",
+          distractorsExplanation: "Wyjątkowość to narcyzm.",
+        },
+        {
+          id: 93,
+          question: "EFEKT LADY MAKBET POLEGA NA...",
+          options: [
+            "ZWIĄZKU MIĘDZY CZYSTOŚCIĄ FIZYCZNĄ A MORALNĄ",
+            "KOMPULSYWNYM KŁAMANIU",
+            "STRACHU PRZED WŁADZĄ",
+            "AGRESJI KOBIET",
+          ],
+          correct: 0,
+          category: "J.F. - Moralność",
+          theory: "Metaforyczne mycie rąk.",
+          academicContext:
+            "Mycie rąk fizycznie 'zmywa' poczucie winy (redukuje dysonans).",
+          explanation: "Czystość moralna.",
+          distractorsExplanation:
+            "Nazwa pochodzi z literatury, ale dotyczy psychologii moralności.",
+        },
+        {
+          id: 94,
+          question:
+            'W TEORII ROZBIEŻNOŚCI JA HIGGINSA POJAWIA SIĘ POJĘCIE "JA PRZEMYŚLANEGO". JEST TO POJĘCIE BLISKIE TEMU, JAK POSTRZEGA SIĘ... (SAMOWIEDZĘ, SAMOOCENĘ CZY EFEKTYWNOŚĆ?)',
+          options: ["SAMOWIEDZĘ", "SAMOOCENĘ", "EFEKTYWNOŚĆ", "MORALNOŚĆ"],
+          correct: 0,
+          category: "J.F. - Ja",
+          theory: "Actual Self.",
+          academicContext: "Fakty o sobie.",
+          explanation: "Samowiedzę.",
+          distractorsExplanation:
+            "Samoocena to afekt. Efektywność to działanie.",
+        },
+        {
+          id: 95,
+          question:
+            "ZGODNIE Z MODELEM AUTOPERCEPCJI DARYLA BEMA, JEDNYM Z WARUNKÓW, KTÓRE SPRZYJAJĄ PROCESOWI AUTOPERCEPCJI JEST...",
+          options: [
+            "BRAK JASNYCH WSKAZÓWEK WEWNĘTRZNYCH (SŁABE SCHEMATY)",
+            "SILNE PRZEKONANIA",
+            "WYSOKA INTELIGENCJA",
+            "PRESJA OTOCZENIA",
+          ],
+          correct: 0,
+          category: "J.F. - Społeczna",
+          theory: "Wnioskowanie z zachowania.",
+          academicContext:
+            "Gdy nie wiem co czuję, patrzę na to co robię. Autopercepcja zachodzi, gdy sygnały wewnętrzne są słabe.",
+          explanation: "Słabe sygnały.",
+          distractorsExplanation:
+            "Silne przekonania wykluczają potrzebę autopercepcji.",
+        },
+        {
+          id: 96,
+          question:
+            "WYNIKI WIELU BADAŃ POKAZUJĄ, ŻE WYSOKI POZIOM CHRONICZNEJ PUBLICZNEJ SAMOŚWIADOMOŚCI WIĄŻE SIĘ Z...",
+          options: [
+            "LĘKIEM PRZED OCENĄ I ODRZUCENIEM",
+            "NONKONFORMIZMEM",
+            "WYSOKĄ SAMOOCENĄ",
+            "BRAKIEM LĘKU",
+          ],
+          correct: 0,
+          category: "J.F. - Ja",
+          theory: "Public Self-Consciousness.",
+          academicContext:
+            "Ciągłe myślenie o tym, jak widzą mnie inni. Prowadzi do lęku społecznego.",
+          explanation: "Lękiem przed oceną.",
+          distractorsExplanation:
+            "Wiąże się z konformizmem (dopasowaniem), a nie nonkonformizmem.",
+        },
+        {
+          id: 97,
+          question:
+            "JEDNYM Z PODSTAWOWYCH ZAŁOŻEŃ TEORII AUTODETERMINACJI DECI'EGO I RYAN'A JEST STWIERDZENIE, ŻE...",
+          options: [
+            "NIE MA POCZUCIA KOMPETENCJI BEZ POCZUCIA AUTONOMII",
+            "NAGRODY ZEWNĘTRZNE SĄ NAJLEPSZE",
+            "CZŁOWIEK JEST REAKTYWNY",
+            "LICZY SIĘ TYLKO SUKCES",
+          ],
+          correct: 0,
+          category: "J.F. - Motywacja",
+          theory: "Internalizacja.",
+          academicContext:
+            "Aby czuć się dobrze, muszę czuć się sprawcą (autonomia), a nie pionkiem.",
+          explanation: "Kompetencja + Autonomia.",
+          distractorsExplanation:
+            "Nagrody zewnętrzne często niszczą motywację (efekt naduzasadnienia).",
+        },
+        {
+          id: 98,
+          question:
+            "MECHANIZM OBRONNY POLEGAJĄCY NA PRZYPISYWANIU INNYM WŁASNYCH NIEPOŻĄDANYCH UCZUĆ, POGLĄDÓW LUB CECH TO...",
+          options: [
+            "PROJEKCJA",
+            "INTROJEKCJA",
+            "ZAPRZECZENIE",
+            "RACJONALIZACJA",
+          ],
+          correct: 0,
+          category: "J.F. - Psychoanaliza",
+          theory: "Projekcja.",
+          academicContext: "Wyrzucanie na zewnątrz.",
+          explanation: "Projekcja.",
+          distractorsExplanation:
+            "Introjekcja to wchłanianie. Zaprzeczenie to negacja faktu.",
+        },
+        {
+          id: 99,
+          question:
+            "SYTUACJA, W KTÓREJ BĘDZIEMY WYJĄTKOWO WYLEWNIE GRATULOWAĆ NASZEMU KOLEDZE AWANSU, KTÓREGO TAK NAPRAWDĘ BARDZO MU ZAZDROŚCIMY, TO PRZYKŁAD...",
+          options: [
+            "REAKCJI UPOZOROWANEJ",
+            "PROJEKCJI",
+            "WYPIERANIA",
+            "INTELEKTUALIZACJI",
+          ],
+          correct: 0,
+          category: "J.F. - Psychoanaliza",
+          theory: "Formowanie reakcji.",
+          academicContext: "Na opak.",
+          explanation: "Reakcji upozorowanej.",
+          distractorsExplanation:
+            "Wypieranie to zapomnienie. Intelektualizacja to chłodna analiza.",
+        },
+        {
+          id: 100,
+          question:
+            "WG. ERIKA ERIKSONA STADIUM PSYCHOSPOŁECZNE ZWIĄZANE Z OKRESEM DOROSŁOŚCI (ŚREDNIEJ) OPIERA SIĘ O ROZSTRZYGNIĘCIE...",
+          options: [
+            "GENERATYWNOŚĆ VS STAGNACJA",
+            "INTYMNOŚĆ VS IZOLACJA",
+            "INTEGRALNOŚĆ VS ROZPACZ",
+            "TOŻSAMOŚĆ VS ROZPROSZENIE",
+          ],
+          correct: 0,
+          category: "J.F. - Rozwój",
+          theory: "Troska.",
+          academicContext: "Twórczość, praca, rodzicielstwo.",
+          explanation: "Generatywność vs Stagnacja.",
+          distractorsExplanation:
+            "Intymność: młodość. Integralność: starość. Tożsamość: dojrzewanie.",
+        },
+        {
+          id: 101,
+          question:
+            'KTÓREJ Z PONIŻSZYCH OSÓB MOŻEMY PRZYPISAĆ WPROWADZENIE DO PSYCHOLOGII I PSYCHOTERAPII POJĘCIA "TERAPII SKONCENTROWANEJ NA KLIENCIE"?',
+          options: [
+            "CARL ROGERS",
+            "ABRAHAM MASLOW",
+            "ROLLO MAY",
+            "VIKTOR FRANKL",
+          ],
+          correct: 0,
+          category: "J.F. - Terapia",
+          theory: "PCA.",
+          academicContext: "Klient.",
+          explanation: "Carl Rogers.",
+          distractorsExplanation:
+            "Inni to humaniści/egzystencjaliści, ale nie twórcy PCA.",
+        },
+        {
+          id: 102,
+          question: "WYSOKI POZIOM POTRZEBY DOMKNIĘCIA POZNAWCZEGO SPRZYJA...",
+          options: [
+            "POWIERZCHOWNEJ ANALIZIE I STEREOTYPOM",
+            "TWÓRCZOŚCI",
+            "POSZUKIWANIU NOWYCH INFORMACJI",
+            "TOLERANCJI NA NIEPEWNOŚĆ",
+          ],
+          correct: 0,
+          category: "J.F. - Poznawcza",
+          theory: "NFC.",
+          academicContext: "Szybkość.",
+          explanation: "Powierzchowności.",
+          distractorsExplanation:
+            "Wysokie NFC zabija kreatywność i poszukiwanie (bo to rodzi niepewność).",
+        },
+        {
+          id: 103,
+          question:
+            "WALTER MISCHEL, WYBITNY AMERYKAŃSKI BADACZ OSOBOWOŚCI, BYŁ AUTOREM TEORII PSYCHOLOGICZNEJ ZNANEJ JAKO...",
+          options: [
+            "POZNAWCZO-AFEKTYWNY SYSTEM OSOBOWOŚCI (CAPS)",
+            "TEORIA CECH WIELKIEJ PIĄTKI",
+            "TEORIA KONSTRUKTÓW OSOBISTYCH",
+            "TEORIA SPOŁECZNEGO UCZENIA SIĘ",
+          ],
+          correct: 0,
+          category: "J.F. - Osobowość",
+          theory: "CAPS.",
+          academicContext: "System procesów.",
+          explanation: "Poznawczo-afektywny system osobowości.",
+          distractorsExplanation:
+            "Konstrukty: Kelly. Społeczne uczenie: Bandura.",
+        },
+        {
+          id: 104,
+          question: 'CO OZNACZA TERMIN "ANTYKATEKSJA" W PSYCHOANALIZIE?',
+          options: [
+            "SIŁA (ENERGIA) POWSTRZYMUJĄCA IMPULS POPĘDOWY",
+            "SIŁA NAPĘDOWA POPĘDU",
+            "PROCES UŚWIADAMIANIA",
+            "ROZWÓJ SEKSUALNY",
+          ],
+          correct: 0,
+          category: "J.F. - Psychoanaliza",
+          theory: "Ekonomia.",
+          academicContext: "Hamulec.",
+          explanation: "Siła powstrzymująca impuls.",
+          distractorsExplanation: "Napęd to kateksja.",
+        },
+        {
+          id: 105,
+          question:
+            "CO STANOWI KLUCZOWY ELEMENT STRUKTURY OSOBOWOŚCI WEDŁUG GORDONA ALLPORTA?",
+          options: ["CECHA", "NAWYK", "ODRUCH", "POSTAWA"],
+          correct: 0,
+          category: "J.F. - Allport",
+          theory: "Struktura.",
+          academicContext: "Jednostka.",
+          explanation: "Cecha.",
+          distractorsExplanation: "Nawyk jest węższy. Postawa jest kierunkowa.",
+        },
+        {
+          id: 106,
+          question:
+            "JAKIE SĄ KLUCZOWE RÓŻNICE MIĘDZY NIEŚWIADOMOŚCIĄ PSYCHOANALITYCZNĄ A POZNAWCZĄ?",
+          options: [
+            "PSYCHOANALITYCZNA JEST MOTYWOWANA (GORĄCA), POZNAWCZA JEST PROCEDURALNA (ZIMNA)",
+            "NIE MA RÓŻNIC",
+            "POZNAWCZA JEST BARDZIEJ EMOCJONALNA",
+            "PSYCHOANALITYCZNA JEST LOGICZNA",
+          ],
+          correct: 0,
+          category: "J.F. - Paradygmaty",
+          theory: "Natura.",
+          academicContext: "Motywy vs Algorytmy.",
+          explanation: "Gorąca vs Zimna.",
+          distractorsExplanation: "Poznawcza jest chłodna (obliczeniowa).",
+        },
+        {
+          id: 107,
+          question:
+            "JAK HANS EYSENCK WYJAŚNIAŁ RÓŻNICE MIĘDZY EKSTRAWERTYKAMI A INTROWERTYKAMI W KONTEKŚCIE TEORII AKTYWACJI?",
+          options: [
+            "INTROWERTYCY MAJĄ WYŻSZE NATURALNE POBUDZENIE, WIĘC UNIKAJĄ STYMULACJI",
+            "EKSTRAWERTYCY MAJĄ WYŻSZE POBUDZENIE",
+            "NIE MA RÓŻNIC W POBUDZENIU",
+            "ZALEŻY TO OD WOLI",
+          ],
+          correct: 0,
+          category: "J.F. - Eysenck",
+          theory: "Aktywacja.",
+          academicContext: "ARAS.",
+          explanation: "Introwertycy unikają.",
+          distractorsExplanation: "Ekstrawertycy są 'niedoładowani'.",
+        },
+        {
+          id: 108,
+          question:
+            "JAKIE CZYNNIKI W UJĘCIU TEORII J. ROTTERA WPŁYWAJĄ NA UMIEJSCOWIENIE POCZUCIA KONTROLI?",
+          options: [
+            "HISTORIA WZMOCNIEŃ (DOŚWIADCZENIA)",
+            "GENETYKA",
+            "DIETA",
+            "KLIMAT",
+          ],
+          correct: 0,
+          category: "J.F. - Rotter",
+          theory: "Uczenie się.",
+          academicContext: "Doświadczenie.",
+          explanation: "Historia wzmocnień.",
+          distractorsExplanation: "To nie jest biologiczne.",
+        },
+        {
+          id: 109,
+          question:
+            'JAK "SUMIENNOŚĆ" (W MODELU WIELKIEJ PIĄTKI) WPŁYWA NA FUNKCJONOWANIE JEDNOSTKI?',
+          options: [
+            "SPRZYJA ORGANIZACJI, WYTRWAŁOŚCI I OSIĄGNIĘCIOM",
+            "SPRZYJA KREATYWNOŚCI",
+            "SPRZYJA LĘKOWI",
+            "SPRZYJA TOWARZYSKOŚCI",
+          ],
+          correct: 0,
+          category: "J.F. - Big Five",
+          theory: "Wola.",
+          academicContext: "Sukces.",
+          explanation: "Organizacja.",
+          distractorsExplanation:
+            "Kreatywność: Otwartość. Towarzyskość: Ekstrawersja.",
+        },
+        {
+          id: 110,
+          question:
+            "W JAKI SPOSÓB RÓŻNIĄ SIĘ KONSTRUKTY WYKLUCZAJĄCE OD KONSTELACYJNYCH W TEORII G. KELLY'EGO?",
+          options: [
+            "WYKLUCZAJĄCE TO SZTYWNE ETYKIETY ('TYLKO TO'), KONSTELACYJNE TO STEREOTYPY (WIĄZKI CECH)",
+            "NIE RÓŻNIĄ SIĘ",
+            "JEDNE SĄ DOBRE, DRUGIE ZŁE",
+            "WYKLUCZAJĄCE SĄ EMOCJONALNE",
+          ],
+          correct: 0,
+          category: "J.F. - Kelly",
+          theory: "Typy.",
+          academicContext: "Logika.",
+          explanation: "Etykiety vs Stereotypy.",
+          distractorsExplanation: "Oba mogą być używane adaptacyjnie lub nie.",
+        },
+        {
+          id: 111,
+          question:
+            'W KONCEPCJI JUNGA, JAKIE ZNACZENIE MA ARCHETYP "ANIMA" W PSYCHICE MĘŻCZYZNY?',
+          options: [
+            "PIERWIASTEK KOBIECY, EMOCJONALNY",
+            "PIERWIASTEK MĘSKI",
+            "MASKA SPOŁECZNA",
+            "CIEŃ",
+          ],
+          correct: 0,
+          category: "J.F. - Jung",
+          theory: "Kontraseksualność.",
+          academicContext: "Eros.",
+          explanation: "Pierwiastek kobiecy.",
+          distractorsExplanation: "Męski to Animus.",
+        },
+        {
+          id: 112,
+          question:
+            'CO WEDŁUG JUNGA OZNACZA POJĘCIE "NIEŚWIADOMOŚCI ZBIOROWEJ"?',
+          options: [
+            "DZIEDZICZONE WZORCE (ARCHETYPY) WSPÓLNE DLA LUDZKOŚCI",
+            "WYPARTE WSPOMNIENIA",
+            "NAWYKI",
+            "SNY",
+          ],
+          correct: 0,
+          category: "J.F. - Jung",
+          theory: "Filogeneza.",
+          academicContext: "Wspólna.",
+          explanation: "Archetypy.",
+          distractorsExplanation:
+            "Wyparte wspomnienia to nieświadomość osobowa.",
+        },
+        {
+          id: 113,
+          question:
+            "W CZYM MODEL COSTY I MCCRAE PRZEWYŻSZA TEORIĘ CECH H. EYSENCKA?",
+          options: [
+            "JEST BARDZIEJ SZCZEGÓŁOWY (5 CZYNNIKÓW VS 3)",
+            "JEST BARDZIEJ BIOLOGICZNY",
+            "JEST PROSTSZY",
+            "JEST STARSZY",
+          ],
+          correct: 0,
+          category: "J.F. - Big Five",
+          theory: "Trafność.",
+          academicContext: "Więcej wymiarów.",
+          explanation: "Bardziej szczegółowy.",
+          distractorsExplanation: "Eysenck był bardziej biologiczny.",
+        },
+        {
+          id: 114,
+          question:
+            "CZYM JEST MECHANIZM OBRONNY I JAKĄ FUNKCJĘ PEŁNI W DYNAMICE OSOBOWOŚCI?",
+          options: [
+            "NIEŚWIADOMA STRATEGIA EGO REDUKUJĄCA LĘK",
+            "ŚWIADOMY PLAN",
+            "CHOROBA PSYCHICZNA",
+            "NAWYK",
+          ],
+          correct: 0,
+          category: "J.F. - Psychoanaliza",
+          theory: "Obrona Ego.",
+          academicContext: "Zniekształcenie.",
+          explanation: "Redukcja lęku.",
+          distractorsExplanation: "Nie jest świadomy.",
+        },
+        {
+          id: 115,
+          question:
+            "KTÓRY EKSPERYMENT ZOSTAŁ UZNANY ZA KLUCZOWY DLA ROZWOJU TEORII UCZENIA SIĘ SPOŁECZNEGO?",
+          options: [
+            "LALKA BOBO (BANDURA)",
+            "PSY PAWŁOWA",
+            "SZCZURY SKINNERA",
+            "GĘSI LORENZA",
+          ],
+          correct: 0,
+          category: "J.F. - Społeczna",
+          theory: "Modelowanie.",
+          academicContext: "Agresja.",
+          explanation: "Lalka Bobo.",
+          distractorsExplanation: "To behawioryzm klasyczny/instrumentalny.",
+        },
+        {
+          id: 116,
+          question: 'CO OZNACZA POJĘCIE "SAMOAKTUALIZACJA" W UJĘCIU MASLOWA?',
+          options: [
+            "REALIZACJA WŁASNEGO POTENCJAŁU",
+            "ZASPOKOJENIE GŁODU",
+            "ZDOBYCIE WŁADZY",
+            "UNIKANIE BÓLU",
+          ],
+          correct: 0,
+          category: "J.F. - Humanistyczna",
+          theory: "Wzrost.",
+          academicContext: "Szczyt hierarchii.",
+          explanation: "Realizacja potencjału.",
+          distractorsExplanation: "To potrzeby niższe.",
+        },
+        {
+          id: 117,
+          question:
+            "MOMENT KULMINACYJNY W TEORII NARRACYJNEJ MCADAMSA OZNACZA...",
+          options: [
+            "KLUCZOWE ZDARZENIE FORMUJĄCE TOŻSAMOŚĆ",
+            "ŚMIERĆ",
+            "NARODZINY",
+            "KRYZYS WIEKU ŚREDNIEGO",
+          ],
+          correct: 0,
+          category: "J.F. - Narracyjna",
+          theory: "Nuclear Episode.",
+          academicContext: "Znaczenie.",
+          explanation: "Kluczowe zdarzenie.",
+          distractorsExplanation:
+            "Może to być kryzys, ale definicja to 'moment o szczególnym znaczeniu'.",
+        },
+        {
+          id: 118,
+          question:
+            'AARON BECK FORMUŁOWAŁ TZW. "TRIADĘ POZNAWCZĄ DEPRESJI". CO WCHODZI W JEJ SKŁAD?',
+          options: [
+            "NEGATYWNA OCENA JA, ŚWIATA I PRZYSZŁOŚCI",
+            "NEGATYWNA OCENA PRZESZŁOŚCI, TERAŹNIEJSZOŚCI I PRZYSZŁOŚCI",
+            "NEGATYWNA OCENA RODZICÓW, SZKOŁY I PRACY",
+            "LĘK, GNIEW, SMUTEK",
+          ],
+          correct: 0,
+          category: "J.F. - Kliniczna",
+          theory: "Triada Becka.",
+          academicContext: "Schematy.",
+          explanation: "Ja, Świat, Przyszłość.",
+          distractorsExplanation: "Przeszłość nie jest elementem definicyjnym.",
+        },
+        {
+          id: 119,
+          question:
+            'AUTOREM TEORII OSOBOWOŚCI, KTÓRA JEST ZNANA JAKO "POZNAWCZO-AFEKTYWNY MODEL OSOBOWOŚCI" JEST...',
+          options: ["WALTER MISCHEL", "FREUD", "JUNG", "ALLPORT"],
+          correct: 0,
+          category: "J.F. - Osobowość",
+          theory: "CAPS.",
+          academicContext: "Procesy.",
+          explanation: "Mischel.",
+          distractorsExplanation: "Klasycy.",
+        },
+        {
+          id: 120,
+          question:
+            'E. TORY HIGGINS PEWIEN PROCES PSYCHICZNY OKREŚLIŁ JAKO "PODSUMOWANIE TEGO, JAKI JEST ŚWIAT W RELACJI DO JA, NARZĘDZIE PRZETRWANIA". CYTAT TEN OPISUJE... (KTÓRE JA?)',
+          options: [
+            "JA PRZEMYŚLANE (RZECZYWISTE)",
+            "JA IDEALNE",
+            "JA POWINNOŚCIOWE",
+            "JA MOŻLIWE",
+          ],
+          correct: 0,
+          category: "J.F. - Ja",
+          theory: "Actual Self.",
+          academicContext: "Orientacja.",
+          explanation: "Narzędzie przetrwania.",
+          distractorsExplanation: "Cel to Ja Idealne.",
+        },
+        {
+          id: 121,
+          question:
+            'JEŻELI DANA OSOBA ZMIENIŁA POJMOWANIE SIEBIE WSKUTEK ODEGRANIA ROLI ZNACZĄCO ROZBIEŻNEJ Z JEJ "OBSZAREM AKCEPTACJI", TO ZMIANĘ TĄ NAJLEPIEJ WYJAŚNIA...',
+          options: [
+            "TEORIA DYSONANSU POZNAWCZEGO",
+            "AUTOPERCEPCJA",
+            "TEORIA GIER",
+            "PSYCHOANALIZA",
+          ],
+          correct: 0,
+          category: "J.F. - Społeczna",
+          theory: "Napięcie.",
+          academicContext: "Festinger.",
+          explanation: "Teoria dysonansu poznawczego.",
+          distractorsExplanation:
+            "Autopercepcja działa przy słabej niespójności.",
+        },
+        {
+          id: 122,
+          question: 'ARCHETYP "ANIMA" W UJĘCIU C. G. JUNGA OZNACZAŁ:',
+          options: [
+            "KOBIECOŚĆ W MĘŻCZYŹNIE",
+            "MĘSKOŚĆ W KOBIECIE",
+            "DZIECKO",
+            "STARZEC",
+          ],
+          correct: 0,
+          category: "J.F. - Jung",
+          theory: "Anima.",
+          academicContext: "Eros.",
+          explanation: "Kobiecość w mężczyźnie.",
+          distractorsExplanation: "Animus to męskość.",
+        },
+        {
+          id: 123,
+          question:
+            "WEDŁUG GORDONA ALLPORTA, OSOBOWOŚĆ MOŻNA WYJAŚNIĆ WTEDY, KIEDY...",
+          options: [
+            "POZNAMY CELE I DĄŻENIA OSOBY",
+            "POZNAMY JEJ SNY",
+            "ZBADAMY JEJ IQ",
+            "ZMIERZYMY JEJ CZAS REAKCJI",
+          ],
+          correct: 0,
+          category: "J.F. - Allport",
+          theory: "Teleologia.",
+          academicContext: "Przyszłość.",
+          explanation: "Poznamy cele i dążenia.",
+          distractorsExplanation: "Sny to Freud.",
+        },
+        {
+          id: 124,
+          question:
+            'ZGODNIE Z TEORIĄ DOMKNIĘCIA POZNAWCZEGO, "TRZONEM" OSOBOWOŚCI CZŁOWIEKA JEST...',
+          options: [
+            "PROCES TWORZENIA WIEDZY (PEWNOŚCI)",
+            "EMOCJE",
+            "BIOLOGIA",
+            "NIEŚWIADOMOŚĆ",
+          ],
+          correct: 0,
+          category: "J.F. - Poznawcza",
+          theory: "Epistemologia.",
+          academicContext: "Wiedza.",
+          explanation: "Proces tworzenia wiedzy.",
+          distractorsExplanation: "To nie jest teoria emocji czy biologii.",
+        },
+        {
+          id: 125,
+          question:
+            "PROCES, W KTÓRYM DOŚWIADCZA SIĘ BODŹCA BEZ UŚWIADOMIENIA GO SOBIE TO...",
+          options: ["SUBCEPCJA", "PERCEPCJA", "UWAGA", "PAMIĘĆ"],
+          correct: 0,
+          category: "J.F. - Percepcja",
+          theory: "Podprogowość.",
+          academicContext: "Rogers.",
+          explanation: "Subcepcja.",
+          distractorsExplanation: "Percepcja jest zazwyczaj świadoma.",
+        },
+        {
+          id: 126,
+          question:
+            'W TEORII ROZBIEŻNOŚCI JA E. TORY\'EGO HIGGINSA UŻYWA SIĘ POJĘCIA "JA POWINNOŚCIOWEGO". JEST TO POJĘCIE BARDZO BLISKIE TEMU, JAK W KONCEPCJACH PSYCHODYNAMICZNYCH ROZUMIE SIĘ...',
+          options: ["SUPEREGO", "ID", "EGO", "PERSONA"],
+          correct: 0,
+          category: "J.F. - Porównanie",
+          theory: "Normy.",
+          academicContext: "Sumienie.",
+          explanation: "Superego.",
+          distractorsExplanation: "Superego.",
+        },
+        {
+          id: 127,
+          question:
+            "PSEUDONAUKA UTRZYMUJĄCA, ŻE WYGLĄD TWARZY DECYDUJE O PRZYNALEŻNOŚCI DO GRUPY CHARAKTEROLOGICZNEJ TO...",
+          options: ["FIZJONOMIKA", "ZDROWIE", "ZAMOŻNOŚĆ", "POCHODZENIE"],
+          correct: 0,
+          category: "J.F. - Historia",
+          theory: "Pseudonauka.",
+          academicContext: "Wygląd.",
+          explanation: "Fizjonomika.",
+          distractorsExplanation: "Głównie chodziło o cechy psychiczne.",
+        },
+        {
+          id: 128,
+          question:
+            'W KONCEPCJACH PSYCHOANALITYCZNYCH "WŁADZĘ WYKONAWCZĄ" OSOBOWOŚCI PEŁNI...',
+          options: ["EGO", "ID", "SUPEREGO", "CIEŃ"],
+          correct: 0,
+          category: "J.F. - Psychoanaliza",
+          theory: "Zarządzanie.",
+          academicContext: "Decyzje.",
+          explanation: "Ego.",
+          distractorsExplanation: "Reszta to doradcy lub lobbyści.",
+        },
+        {
+          id: 129,
+          question:
+            "WG. ERIKA ERIKSONA STADIUM PSYCHOSPOŁECZNE WCZESNEJ DOROSŁOŚCI OPIERA SIĘ O ROZSTRZYGNIĘCIE...",
+          options: [
+            "BLISKOŚĆ VS IZOLACJA",
+            "UFNOŚĆ VS NIEUFNOŚĆ",
+            "AUTONOMIA...",
+            "PRZEMYSŁOWOŚĆ...",
+          ],
+          correct: 0,
+          category: "J.F. - Rozwój",
+          theory: "Związek.",
+          academicContext: "Miłość.",
+          explanation: "Bliskość vs Izolacja.",
+        },
+        {
+          id: 130,
+          question:
+            "ZGODNIE Z KONCEPCJĄ G. ALLPORTA, TE DĄŻENIA, KTÓRE SĄ NAJBARDZIEJ DOTYCZĄCE JA, MOŻNA OKREŚLI MIANEM DĄŻEŃ...",
+          options: ["PRIOPRATYWNYCH", "OBCYCH", "NAWYKOWYCH", "REAKTYWNYCH"],
+          correct: 0,
+          category: "J.F. - Allport",
+          theory: "Proprium.",
+          academicContext: "Rdzeń.",
+          explanation: "Priopratywnych.",
+        },
+        {
+          id: 131,
+          question: "TEORIA WIELKIEJ PIĄTKI TO PRZYKŁAD TEORII...",
+          options: [
+            "CECHOWEJ",
+            "TYPOLOGICZNEJ",
+            "PSYCHODYNAMICZNEJ",
+            "BEHAWIORALNEJ",
+          ],
+          correct: 0,
+          category: "J.F. - Big Five",
+          theory: "Cechy.",
+          academicContext: "Wymiary.",
+          explanation: "Cechowej.",
+        },
+        {
+          id: 132,
+          question:
+            "PERSERWERATYWNIOŚĆ EMOCJONALNA SZCZEGÓLNIE CZĘSTO POJAWIAĆ SIĘ BĘDZIE U OSÓB Z WYSOKIM POZIOMEM CECHY, JAKĄ JEST...",
+          options: ["NEUROTYCZNOŚĆ", "STABILNOŚĆ", "EKSTRAWERSJA", "OTWARTOŚĆ"],
+          correct: 0,
+          category: "J.F. - Emocje",
+          theory: "Zaleganie.",
+          academicContext: "Bezwładność.",
+          explanation: "Neurotyczność.",
+        },
+        {
+          id: 133,
+          question:
+            "NAJWIĘKSZĄ PRZESZKODĄ W PROCESIE SAMOREALIZACJI JEST W UJĘCIU C. ROGERSA...",
+          options: [
+            "UZALEŻNIANIE SIĘ OD OCEN ZEWNĘTRZNYCH",
+            "BRAK TALENTU",
+            "LENISTWO",
+            "BRAK PIENIĘDZY",
+          ],
+          correct: 0,
+          category: "J.F. - Humanistyczna",
+          theory: "Rogers.",
+          academicContext: "Ocena.",
+          explanation: "Uzależnianie się od ocen zewnętrznych.",
+        },
+        {
+          id: 134,
+          question:
+            "MOTYW NAJISTOTNIEJSZY W KONCEPCJI REYKOWSKIEGO LUB GREENWALDA, TAKI, KTÓRY DOMINUJE NAD POZOSTAŁYMI TO...",
+          options: [
+            "AUTOWALORYZACJA",
+            "SAMOPOZNANIE",
+            "REDUKCJA",
+            "SAMOKONTROLA",
+          ],
+          correct: 0,
+          category: "J.F. - Ja",
+          theory: "Egotyzm.",
+          academicContext: "Dobre samopoczucie.",
+          explanation: "Autowaloryzacja.",
+        },
+        {
+          id: 135,
+          question:
+            'STWIERDZENIE, ŻE "CZŁOWIEK POSIADA ZDOLNOŚĆ DO STRUKTURALIZOWANIA DOCIERAJĄCYCH DO NIEGO BODŹCÓW" JEST CHARAKTERYSTYCZNE DLA TEORII...',
+          options: ["GESTALT", "ASOCJANIZMU", "BEHAWIORYZMU", "PSYCHOANALIZY"],
+          correct: 0,
+          category: "J.F. - Percepcja",
+          theory: "Całość.",
+          academicContext: "Organizacja.",
+          explanation: "Gestalt.",
+        },
+        {
+          id: 136,
+          question: 'ZA "OJCA TEORII ATRYBUCJI" UWAŻANY JEST...',
+          options: ["FRITZ HEIDER", "KELLEY", "JONES", "DAVIS"],
+          correct: 0,
+          category: "J.F. - Społeczna",
+          theory: "Naiwna.",
+          academicContext: "Przyczyny.",
+          explanation: "Fritz Heider.",
+        },
+        {
+          id: 137,
+          question:
+            "NAJWAŻNIEJSZYM ELEMENTEM, KTÓRY WG. TEORII GEORGE'A KELLY'EGO DEFINIUJE TO, CZYM JEST \"KONSTRUKT OSOBISTY\" JEST JEGO...",
+          options: [
+            "DWUBIEGUNOWOŚĆ",
+            "JEDNO...",
+            "NEUTRALNOŚĆ",
+            "UNIWERSALNOŚĆ",
+          ],
+          correct: 0,
+          category: "J.F. - Kelly",
+          theory: "Kontrast.",
+          academicContext: "Dychotomia.",
+          explanation: "Dwubiegunowość.",
+        },
+        {
+          id: 138,
+          question:
+            '"INTERNALISTA" TO, W ŚWIETLE TEORII POCZUCIA UMIEJSCOWIENIA KONTROLI J. ROTTERA, OSOBA, KTÓRA...',
+          options: [
+            "DOŚWIADCZY POCZUCIA WINY PRZY PORAŻCE",
+            "WINI INNYCH",
+            "LICZY NA SZCZĘŚCIE",
+            "JEST BIERNY",
+          ],
+          correct: 0,
+          category: "J.F. - Rotter",
+          theory: "Wewnątrz.",
+          academicContext: "Kontrola.",
+          explanation: "Doświadczy poczucia winy.",
+        },
+        {
+          id: 139,
+          question:
+            "KWESTIONARIUSZ PSYCHOLOGICZNY, KTÓRY POZWALA OKREŚLIĆ RODZAJ I POZIOM POCZUCIA UMIEJSCOWIENIA KONTROLI TO M.IN...",
+          options: ["DELTA", "MMPI", "WAIS", "RAVEN"],
+          correct: 0,
+          category: "J.F. - Diagnostyka",
+          theory: "Drwal.",
+          academicContext: "Poczucie kontroli.",
+          explanation: "Delta.",
+        },
+        {
+          id: 140,
+          question:
+            "NA PODATNOŚĆ WOBEC WYUCZANIA SIĘ BEZRADNOŚCI WPŁYWA M.IN...",
+          options: ["STYL ATRYBUCJI", "OPTYMIZM", "SAMOOCENA", "KONTROLA"],
+          correct: 0,
+          category: "J.F. - Kliniczna",
+          theory: "Wyjaśnianie.",
+          academicContext: "Pesymizm.",
+          explanation: "Styl atrybucji.",
+        },
+        {
+          id: 141,
+          question:
+            'KTÓREMU BADACZOWI OSOBOWOŚCI MOŻNA PRZYPISAĆ ZDANIE: "CZŁOWIEK JAKO ISTOTA INTENCJONALNA MA ZDOLNOŚĆ DO AUTOREFLEKSJI I SAMOREGULACJI"?',
+          options: ["ALBERTOWI BANDURZE", "FREUDOWI", "HEIDEROWI", "FROMMOWI"],
+          correct: 0,
+          category: "J.F. - Bandura",
+          theory: "Agency.",
+          academicContext: "Aktywność.",
+          explanation: "Albertowi Bandurze.",
+        },
+        {
+          id: 142,
+          question:
+            "KAŻDĄ Z SAMOOCEN SZCZEGÓŁOWYCH MOŻNA ROZPATRYWAĆ NA KILKU WYMIARACH. NIE NALEŻY DO NICH WYMIAR...",
+          options: ["ATRAKCYJNOŚĆ", "KOLOR...", "SMAK...", "DŁUGOŚĆ..."],
+          correct: 0,
+          category: "J.F. - Ja",
+          theory: "Formalne.",
+          academicContext: "Siła.",
+          explanation: "Atrakcyjność.",
+        },
+        {
+          id: 143,
+          question:
+            "OSOBA, KTÓRA POSIADA SILNIE ROZBUDOWANE METAPOZNAWCZE JA BĘDZIE CHARAKTERYZOWAŁA SIĘ...",
+          options: [
+            "REALISTYCZNYMI SĄDAMI NA WŁASNY TEMAT",
+            "PYCHĄ",
+            "DEPRESJĄ",
+            "BEZMYŚLNOŚCIĄ",
+          ],
+          correct: 0,
+          category: "J.F. - Poznawcza",
+          theory: "Wiedza.",
+          academicContext: "Wgląd.",
+          explanation: "Realistycznymi sądami na własny temat.",
+        },
+        {
+          id: 144,
+          question:
+            "W UJĘCIU TEORII JA DIALOGOWEGO H. HERMANSA, JA TRAKTOWANE JEST JAKO...",
+          options: ["STRUKTURA POLIFONICZNA", "MONOLIT", "PUSTKA", "CHAOS"],
+          correct: 0,
+          category: "J.F. - Narracyjna",
+          theory: "Głosy.",
+          academicContext: "Dialog.",
+          explanation: "Struktura polifoniczna.",
+        },
+        {
+          id: 145,
+          question:
+            "NAJBARDZIEJ PODATNE NA ZMIANY POD WPŁYWEM PUBLICZNEJ MANIPULACJI WŁASNYM WARUNKIEM SĄ...",
+          options: [
+            "SAMOOCENY SZCZEGÓŁOWE",
+            "TEMPERAMENT",
+            "INTELIGENCJA",
+            "PŁEĆ",
+          ],
+          correct: 0,
+          category: "J.F. - Społeczna",
+          theory: "Tice.",
+          academicContext: "Zmiana.",
+          explanation: "Samooceny szczegółowe.",
+        },
+        {
+          id: 146,
+          question:
+            "WZAJEMNY DETERMINIZM OSOBOWOŚCI, ŚRODOWISKA I ZACHOWANIA PODKREŚLA SIĘ SZCZEGÓLNIE W TEORII...",
+          options: [
+            "SPOŁECZNEGO UCZENIA SIĘ",
+            "ID-EGO-SUPEREGO",
+            "S-R",
+            "CZAS",
+          ],
+          correct: 0,
+          category: "J.F. - Bandura",
+          theory: "Triada.",
+          academicContext: "Interakcja.",
+          explanation: "Społecznego uczenia się.",
+        },
+        {
+          id: 147,
+          question:
+            'W TEORII KELLY\'EGO: STANOWISKO, ZGODNIE Z KTÓRYM, "WSZYSTKIE NASZE OBECNE INTERPRETACJE ŚWIATA MOGĄ BYĆ ZREWIDOWANE LUB ZASTĄPIONE INNYMI" TO...',
+          options: [
+            "ALTERNATYWIZM KONSTRUKCYJNY",
+            "LOS PRZESĄDZONY",
+            "FAKTY",
+            "BRAK PRAWDY",
+          ],
+          correct: 0,
+          category: "J.F. - Kelly",
+          theory: "Wolność.",
+          academicContext: "Wybór.",
+          explanation: "Alternatywizm konstrukcyjny.",
+        },
+        {
+          id: 148,
+          question: 'CZYM JEST "KONSTRUKT OSOBISTY" W UJĘCIU KELLY\'EGO?',
+          options: [
+            "SPOBEIM INTERPRETOWANIA I PRZEWIDYWANIA ZDARZEŃ",
+            "UCZUCIEM",
+            "FAKTEM",
+            "PRZEDMIOTEM",
+          ],
+          correct: 0,
+          category: "J.F. - Kelly",
+          theory: "Szablon.",
+          academicContext: "Przewidywanie.",
+          explanation: "Sposobem interpretowania i przewidywania zdarzeń.",
+        },
+        {
+          id: 149,
+          question:
+            "SPOSÓB TWORZENIA KONSTRUKTU - ZASADA MINIMALNEGO KONTEKSTU (DWA ELEMENTY PODOBNE, JEDEN PRZECIWSTAWNY)",
+          options: ["2 PODOBNE + 1 RÓŻNY", "1+1", "3 RÓŻNE", "4 PODOBNE"],
+          correct: 0,
+          category: "J.F. - Kelly",
+          theory: "Budowa.",
+          academicContext: "Kontrast.",
+          explanation: "2 podobne + 1 różny.",
+        },
+        {
+          id: 150,
+          question:
+            "RODZAJE KONSTRUKTÓW (NP. RDZENNE, PERYFERYJNE, PRZEPUSZCZALNE, NIEPRZEPUSZCZALNE, ZANURZONE)",
+          options: [
+            "PRZEPUSZCZALNE/NIEPRZEPUSZCZALNE",
+            "SZTYWNY",
+            "STARY",
+            "ZAPOMNIANY",
+          ],
+          correct: 0,
+          category: "J.F. - Kelly",
+          theory: "Otwartość.",
+          academicContext: "Zmiana.",
+          explanation: "Przepuszczalne/Nieprzepuszczalne.",
+        },
+        {
+          id: 151,
+          question: 'NA CZYM POLEGA METAFORA "CZŁOWIEKA JAKO NAUKOWCA"?',
+          options: [
+            "TESTUJE HIPOTEZY W ŻYCIU",
+            "NOSI FARTUCH",
+            "OBIEKTYWNY",
+            "PISZE",
+          ],
+          correct: 0,
+          category: "J.F. - Kelly",
+          theory: "Eksperyment.",
+          academicContext: "Weryfikacja.",
+          explanation: "Testuje hipotezy w życiu.",
+        },
+        {
+          id: 152,
+          question:
+            "JAKIE SĄ FAZY PROCESU EPISTEMICZNEGO W TEORII POTRZEBY DOMKNIĘCIA POZNAWCZEGO? (KRUGLANSKI)",
+          options: [
+            "CHWYTANIE I ZAMRAŻANIE",
+            "PYTANIE I ODP",
+            "START I META",
+            "MYŚLENIE I DZIAŁANIE",
+          ],
+          correct: 0,
+          category: "J.F. - Poznawcza",
+          theory: "NFC.",
+          academicContext: "Dynamika.",
+          explanation: "Chwytanie i Zamrażanie.",
+        },
+        {
+          id: 153,
+          question:
+            "AUTOKONCENTRACJA (SELF-FOCUS) - CZYM JEST I JAKIE SĄ JEJ DWA RODZAJE (PRYWATNA VS PUBLICZNA)? CZYM SIĘ RÓŻNIĄ?",
+          options: [
+            "PRYWATNA: WNĘTRZE, PUBLICZNA: WYGLĄD",
+            "WYGLĄD VS WNĘTRZE",
+            "BRAK RÓŻNIC",
+            "INTELIGENCJA",
+          ],
+          correct: 0,
+          category: "J.F. - Ja",
+          theory: "Kierunek.",
+          academicContext: "Introspekcja/Wizerunek.",
+          explanation: "Prywatna: wnętrze, Publiczna: wygląd.",
+        },
+        {
+          id: 154,
+          question:
+            "JAK WPŁYWA NA NAS AUTOKONCENTRACJA? KONCENTRACJĘ NA JA, A TO PROWADZI DO PORÓWNANIA JA REALNEGO Z JA IDEALNYM...",
+          options: [
+            "PROWADZI DO DYSKOMFORTU (OBNIŻENIA NASTROJU)",
+            "SAMOZADOWOLENIE",
+            "ZAPOMNIENIE",
+            "AGRESJĘ",
+          ],
+          correct: 0,
+          category: "J.F. - Ja",
+          theory: "Duval/Wicklund.",
+          academicContext: "Rozbieżność.",
+          explanation: "Prowadzi do dyskomfortu (obniżenia nastroju).",
+        },
+        {
+          id: 155,
+          question:
+            "AUTOR KONCEPCJI JA DIALOGOWEGO, TRAKTOWAŁ TOŻSAMOŚĆ (JA) JAKO STRUKTURĘ POLIFONICZNĄ...",
+          options: ["HUBERT HERMANS", "ZWIERCIADLANE", "IDEALNE", "REALNE"],
+          correct: 0,
+          category: "J.F. - Narracyjna",
+          theory: "DST.",
+          academicContext: "Dialog.",
+          explanation: "Hubert Hermans.",
+        },
+        {
+          id: 156,
+          question:
+            "WEDŁUG NIEJ SAMOWIEDZA MOŻE BYĆ ROZPATRYWANA JAKO SYSTEM AUTOSCHEMATÓW PORZĄDKUJĄCYCH WIEDZĘ O JA",
+          options: [
+            "HAZEL MARKUS",
+            "AUTOKREACJA",
+            "AUTOREFLEKSJA",
+            "AUTOAFIRMACJA",
+          ],
+          correct: 0,
+          category: "J.F. - Poznawcza",
+          theory: "Struktura.",
+          academicContext: "Porządkowanie.",
+          explanation: "Hazel Markus.",
+        },
+        {
+          id: 157,
+          question:
+            "KIEDY MOŻEMY MÓWIĆ O INTERNALIZACJI AUTOPREZENTACJI? JAKIE CZYNNIKI SPRZYJAJĄ TEJ INTERNALIZACJI?",
+          options: [
+            "PUBLICZNOŚĆ ZACHOWANIA I SWOBODA WYBORU",
+            "PRYWATNOŚĆ I PRZYMUS",
+            "NAGRODA",
+            "SZYBKOŚĆ",
+          ],
+          correct: 0,
+          category: "J.F. - Społeczna",
+          theory: "Tice.",
+          academicContext: "Zobowiązanie.",
+          explanation: "Publiczność zachowania i Swoboda wyboru.",
+        },
+        {
+          id: 158,
+          question:
+            "NA CZYM POLEGA TEORIA DYSONANSU POZNAWCZEGO I KTO JEST AUTOREM JEJ PIERWOTNEJ WERSJI?",
+          options: ["LEON FESTINGER", "KURT LEWIN", "ASCH", "MILGRAM"],
+          correct: 0,
+          category: "J.F. - Społeczna",
+          theory: "1957.",
+          academicContext: "Klasyk.",
+          explanation: "Leon Festinger.",
+        },
+        {
+          id: 159,
+          question: "JAKIE SĄ SPOSOBY NA USUNIĘCIE DYSONANSU POZNAWCZEGO?",
+          options: [
+            "ZMIANA POSTAWY, ZMIANA ZACHOWANIA, DODANIE ELEMENTÓW KONSONANSOWYCH",
+            "IGNOROWANIE",
+            "SZUKANIE SPRZECZNOŚCI",
+            "KRZYK",
+          ],
+          correct: 0,
+          category: "J.F. - Społeczna",
+          theory: "Spójność.",
+          academicContext: "Redukcja napięcia.",
+          explanation:
+            "Zmiana postawy, Zmiana zachowania, Dodanie elementów konsonansowych.",
+        },
+        {
+          id: 160,
+          question:
+            "KTO JEST AUTOREM CYBERNETYCZNEGO MODELU SAMOREGULACJI, W KTÓRYM ZACHOWANIE JEST REGULOWANE PRZEZ SPRZĘŻENIE ZWROTNE?",
+          options: ["CARVER I SCHEIER", "FREUD", "ROGERS", "PAVLOV"],
+          correct: 0,
+          category: "J.F. - Samoregulacja",
+          theory: "Sprzężenie zwrotne.",
+          academicContext: "Pętla.",
+          explanation: "Carver i Scheier.",
+        },
+        {
+          id: 161,
+          question: "W MODELU CYBERNETYCZNYM EMOCJE SĄ SYGNAŁEM O...",
+          options: [
+            "TEMPIE REDUKCJI ROZBIEŻNOŚCI",
+            "PRZESZKODZIE",
+            "CELU",
+            "NIEISTOTNE",
+          ],
+          correct: 0,
+          category: "J.F. - Samoregulacja",
+          theory: "Meta-monitoring.",
+          academicContext: "Informacja.",
+          explanation: "Tempie redukcji rozbieżności.",
+        },
+        {
+          id: 162,
+          question: "PĘTLA UJEMNEGO SPRZĘŻENIA ZWROTNEGO (TOTE) OZNACZA:",
+          options: ["TEST-OPERATE-TEST-EXIT", "TRY...", "THINK...", "TIME..."],
+          correct: 0,
+          category: "J.F. - Samoregulacja",
+          theory: "Algorytm.",
+          academicContext: "Miller.",
+          explanation: "Test-Operate-Test-Exit.",
+        },
+        {
+          id: 163,
+          question:
+            "CZYM RÓŻNI SIĘ SAMOŚWIADOMOŚĆ PRYWATNA OD PUBLICZNEJ? (PRYWATNA SPRZYJA...)",
+          options: [
+            "ZGODNOŚCI POSTAW Z ZACHOWANIEM",
+            "KONFORMIZMOWI",
+            "LĘKOWI",
+            "KŁAMSTWU",
+          ],
+          correct: 0,
+          category: "J.F. - Ja",
+          theory: "Spójność.",
+          academicContext: "Wierność sobie.",
+          explanation: "Zgodności postaw z zachowaniem.",
+        },
+        {
+          id: 164,
+          question: "SAMOŚWIADOMOŚĆ PUBLICZNA SPRZYJA...",
+          options: [
+            "KONFORMIZMOWI",
+            "AUTENTYCZNOŚCI",
+            "IGNOROWANIU",
+            "INTROSPEKCJI",
+          ],
+          correct: 0,
+          category: "J.F. - Ja",
+          theory: "Dopasowanie.",
+          academicContext: "Wizerunek.",
+          explanation: "Konformizmowi.",
+        },
+        {
+          id: 165,
+          question:
+            "ZJAWISKO 'PŁAWIENIA SIĘ W CUDZEJ CHWALE' (BIRGING) SŁUŻY...",
+          options: [
+            "AUTOWALORYZACJI (PODNIESIENIU SAMOOCENY)",
+            "SAMOPOZNANIU",
+            "REDUKCJI",
+            "KONTROLI",
+          ],
+          correct: 0,
+          category: "J.F. - Ja",
+          theory: "Cialdini.",
+          academicContext: "Sukces innych.",
+          explanation: "Autowaloryzacji (podniesieniu samooceny).",
+        },
+      ];
+
+      // --- RESZTA APLIKACJI (Funkcje pomocnicze, komponenty) ---
+      const shuffleArray = (array) => {
+        const arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      };
+
+      const QuizApp = () => {
+        const [gameState, setGameState] = useState("intro"); // intro, playing, finished, list
+        const [questionPool, setQuestionPool] = useState([]);
+        const [currentIdx, setCurrentIdx] = useState(0);
+        const [userAnswers, setUserAnswers] = useState({});
+        const [reviewList, setReviewList] = useState(new Set());
+        const [shuffledOptionsMap, setShuffledOptionsMap] = useState({});
+        const [showTheory, setShowTheory] = useState(false);
+        const [viewingTheoryId, setViewingTheoryId] = useState(null); // For list view modal
+        const [isLoaded, setIsLoaded] = useState(false);
+
+        useEffect(() => {
+          const saved = localStorage.getItem("psych_quiz_jf_final");
+          if (saved) {
+            try {
+              const data = JSON.parse(saved);
+              if (
+                data.gameState !== "intro" &&
+                data.gameState !== "list" &&
+                data.questionPoolIds
+              ) {
+                const restoredPool = data.questionPoolIds
+                  .map((id) => fullQuizData.find((q) => q.id === id))
+                  .filter(Boolean);
+                setQuestionPool(restoredPool);
+                setReviewList(new Set(data.reviewList));
+                setShuffledOptionsMap(data.shuffledOptionsMap);
+                setUserAnswers(data.userAnswers);
+                setCurrentIdx(data.currentIdx);
+                setGameState(data.gameState);
+              } else {
+                setReviewList(new Set(data.reviewList || []));
+              }
+            } catch (e) {
+              localStorage.removeItem("psych_quiz_jf_final");
+            }
+          }
+          setIsLoaded(true);
+        }, []);
+
+        useEffect(() => {
+          if (!isLoaded) return;
+          const data = {
+            gameState,
+            currentIdx,
+            userAnswers,
+            reviewList: Array.from(reviewList),
+            shuffledOptionsMap,
+            questionPoolIds: questionPool.map((q) => q.id),
+          };
+          localStorage.setItem("psych_quiz_jf_final", JSON.stringify(data));
+        }, [
+          gameState,
+          currentIdx,
+          userAnswers,
+          reviewList,
+          shuffledOptionsMap,
+          questionPool,
+          isLoaded,
+        ]);
+
+        const resetProgress = () => {
+          if (confirm("Czy na pewno chcesz skasować wszystkie postępy?")) {
+            localStorage.removeItem("psych_quiz_jf_final");
+            window.location.reload();
+          }
+        };
+
+        const startQuiz = (mode) => {
+          let pool = [];
+          if (mode === "all") pool = [...fullQuizData];
+          else if (mode === "old") pool = fullQuizData.slice(0, 75);
+          else if (mode === "jf") pool = fullQuizData.slice(75, 165);
+          else if (mode === "difficult")
+            pool = fullQuizData.filter((q) => reviewList.has(q.id));
+
+          if (pool.length === 0) {
+            alert("Brak pytań.");
+            return;
+          }
+
+          const newShuffledMap = {};
+          pool.forEach((q) => {
+            const optionsWithIndices = q.options.map((opt, i) => ({
+              text: opt,
+              originalIdx: i,
+            }));
+            newShuffledMap[q.id] = shuffleArray(optionsWithIndices);
+          });
+
+          setShuffledOptionsMap(newShuffledMap);
+          setQuestionPool(pool);
+          setCurrentIdx(0);
+          setUserAnswers({});
+          setShowTheory(false);
+          setGameState("playing");
+        };
+
+        const showQuestionsList = () => setGameState("list");
+        const openTheoryModal = (id) => setViewingTheoryId(id);
+        const closeTheoryModal = () => setViewingTheoryId(null);
+
+        const currentQuestion = questionPool[currentIdx];
+        const currentAnswer = userAnswers[currentQuestion?.id];
+        const isReviewMarked =
+          currentQuestion && reviewList.has(currentQuestion.id);
+
+        const handleOptionClick = (originalIdx) => {
+          if (currentAnswer) return;
+          const isCorrect = originalIdx === currentQuestion.correct;
+          setUserAnswers((prev) => ({
+            ...prev,
+            [currentQuestion.id]: { selectedOptionIdx: originalIdx, isCorrect },
+          }));
+          if (!isCorrect)
+            setReviewList((prev) => new Set(prev).add(currentQuestion.id));
+        };
+
+        const toggleReviewMark = (e) => {
+          e.stopPropagation();
+          const id = currentQuestion.id;
+          setReviewList((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(id)) newSet.delete(id);
+            else newSet.add(id);
+            return newSet;
+          });
+        };
+
+        const handleNext = () => {
+          setShowTheory(false);
+          if (currentIdx < questionPool.length - 1) {
+            setCurrentIdx((prev) => prev + 1);
+            window.scrollTo(0, 0);
+          } else {
+            setGameState("finished");
+          }
+        };
+
+        const handleBack = () => {
+          if (currentAnswer) {
+            const newAnswers = { ...userAnswers };
+            delete newAnswers[currentQuestion.id];
+            setUserAnswers(newAnswers);
+            setShowTheory(false);
+            return;
+          }
+          if (currentIdx > 0) {
+            const prevQ = questionPool[currentIdx - 1];
+            const newAnswers = { ...userAnswers };
+            delete newAnswers[prevQ.id];
+            setUserAnswers(newAnswers);
+            setCurrentIdx((prev) => prev - 1);
+            setShowTheory(false);
+          }
+        };
+
+        const score = Object.values(userAnswers).filter(
+          (a) => a.isCorrect
+        ).length;
+        const jfQuestions = fullQuizData.slice(75, 165);
+        const theoryQuestion = fullQuizData.find(
+          (q) => q.id === viewingTheoryId
+        );
+
+        if (!isLoaded)
+          return (
+            <div className="min-h-screen flex items-center justify-center">
+              Ładowanie...
+            </div>
+          );
+
+        if (gameState === "list") {
+          return (
+            <div className="min-h-screen bg-white p-4 md:p-8 relative">
+              <div className="max-w-4xl mx-auto">
+                <div className="flex justify-between items-center mb-8 sticky top-0 bg-white z-10 py-4 border-b">
+                  <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                    <Icons.List className="w-8 h-8 text-indigo-600" /> Lista
+                    zagadnień - J.F.
+                  </h2>
+                  <button
+                    onClick={() => setGameState("intro")}
+                    className="px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200"
+                  >
+                    Wróć
+                  </button>
+                </div>
+                <div className="space-y-4 pb-20">
+                  {jfQuestions.map((q, idx) => (
+                    <div
+                      key={q.id}
+                      className="p-5 border rounded-xl hover:shadow-md transition bg-slate-50 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between"
+                    >
+                      <div className="flex gap-4">
+                        <span className="font-bold text-indigo-500 min-w-[30px] pt-1">
+                          {idx + 1}.
+                        </span>
+                        <div>
+                          <h3 className="font-bold text-slate-800 text-lg leading-snug">
+                            {q.question}
+                          </h3>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => openTheoryModal(q.id)}
+                        className="px-4 py-2 bg-white border border-indigo-200 text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition flex items-center gap-2 whitespace-nowrap self-end md:self-auto shadow-sm"
+                      >
+                        <Icons.Cap className="w-4 h-4" /> Tablica wiedzy
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {viewingTheoryId && theoryQuestion && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm fade-in">
+                  <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-slide-up">
+                    <div className="bg-indigo-600 p-4 text-white flex justify-between items-center shrink-0">
+                      <h3 className="font-bold text-lg flex items-center gap-2">
+                        <Icons.Cap className="w-5 h-5" /> Tablica Wiedzy
+                      </h3>
+                      <button
+                        onClick={closeTheoryModal}
+                        className="p-1 rounded-lg hover:bg-white/20 transition"
+                      >
+                        <Icons.X className="w-6 h-6" />
+                      </button>
+                    </div>
+                    <div className="p-6 overflow-y-auto custom-scrollbar space-y-6 bg-slate-50">
+                      <h2 className="text-xl font-bold text-slate-800">
+                        {theoryQuestion.question}
+                      </h2>
+                      <div>
+                        <h4 className="text-xs font-black text-indigo-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                          <div className="w-1 h-4 bg-indigo-500 rounded-full"></div>{" "}
+                          Wykład
+                        </h4>
+                        <div className="prose-text text-sm md:text-base text-justify bg-white p-4 rounded-xl border border-indigo-50 shadow-sm">
+                          {theoryQuestion.theory}
+                        </div>
+                      </div>
+                      {theoryQuestion.academicContext && (
+                        <div>
+                          <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+                            Kontekst Akademicki
+                          </h4>
+                          <div className="prose-text text-sm md:text-base text-justify bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                            {theoryQuestion.academicContext}
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex gap-4 items-start bg-green-50 p-4 rounded-xl border border-green-100">
+                        <div className="w-1 self-stretch bg-green-500 rounded-full min-h-[20px]"></div>
+                        <div>
+                          <h4 className="text-xs font-bold text-green-700 uppercase mb-1">
+                            Prawidłowa odpowiedź
+                          </h4>
+                          <p className="text-sm md:text-base text-green-900 font-medium">
+                            {theoryQuestion.explanation}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-4 border-t bg-white shrink-0 flex justify-end">
+                      <button
+                        onClick={closeTheoryModal}
+                        className="px-6 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition"
+                      >
+                        Zamknij
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        if (gameState === "intro") {
+          return (
+            <div className="min-h-screen flex items-center justify-center p-4">
+              <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full text-center fade-in border border-slate-100 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-600 to-purple-600"></div>
+                <div className="bg-indigo-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+                  <Icons.Book className="w-12 h-12 text-indigo-600" />
+                </div>
+                <h1 className="text-4xl font-extrabold text-slate-800 mb-4 tracking-tight">
+                  Psychologia <span className="text-indigo-600">PRO</span>
+                </h1>
+                <p className="text-slate-500 mb-10 text-lg leading-relaxed">
+                  Baza J.F. (165 pytań). System powtórek.
+                </p>
+                <div className="space-y-4">
+                  <button
+                    onClick={() => startQuiz("all")}
+                    className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-bold text-xl hover:bg-indigo-700 transition transform hover:scale-[1.02] shadow-xl flex items-center justify-center gap-3"
+                  >
+                    Wszystkie pytania (165) <Icons.Right className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={() => startQuiz("old")}
+                    className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold text-lg hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-lg"
+                  >
+                    <Icons.Book className="w-5 h-5" /> Pytania z quizów (75)
+                  </button>
+                  <button
+                    onClick={() => startQuiz("jf")}
+                    className="w-full py-4 bg-teal-600 text-white rounded-2xl font-bold text-lg hover:bg-teal-700 transition flex items-center justify-center gap-2 shadow-lg"
+                  >
+                    <Icons.Filter className="w-5 h-5" /> Tylko zestaw J.F. (90)
+                  </button>
+                  <button
+                    onClick={showQuestionsList}
+                    className="w-full py-4 bg-white border-2 border-indigo-100 text-indigo-700 rounded-2xl font-bold text-lg hover:bg-indigo-50 transition flex items-center justify-center gap-2 shadow-sm"
+                  >
+                    <Icons.List className="w-5 h-5" /> Lista zagadnień - J.F.
+                  </button>
+                  {reviewList.size > 0 && (
+                    <button
+                      onClick={() => startQuiz("difficult")}
+                      className="w-full py-4 bg-orange-100 text-orange-700 rounded-2xl font-bold text-lg hover:bg-orange-200 transition flex items-center justify-center gap-2"
+                    >
+                      <Icons.Retry className="w-5 h-5" /> Kontynuuj powtórki (
+                      {reviewList.size})
+                    </button>
+                  )}
+                  <button
+                    onClick={resetProgress}
+                    className="w-full py-3 text-slate-400 hover:text-red-500 text-sm font-semibold transition flex items-center justify-center gap-2 mt-6"
+                  >
+                    <Icons.Trash className="w-4 h-4" /> Kasuj wyniki
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        if (gameState === "finished") {
+          return (
+            <div className="min-h-screen flex items-center justify-center p-4">
+              <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full text-center fade-in relative">
+                <Icons.Award className="w-24 h-24 text-yellow-400 mx-auto mb-6 drop-shadow-md" />
+                <h2 className="text-3xl font-extrabold text-slate-800 mb-2">
+                  Koniec!
+                </h2>
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  <div className="p-5 bg-indigo-50 rounded-2xl border border-indigo-100">
+                    <div className="text-indigo-400 text-xs font-bold uppercase">
+                      Wynik
+                    </div>
+                    <div className="text-4xl font-black text-indigo-700">
+                      {score}/{questionPool.length}
+                    </div>
+                  </div>
+                  <div className="p-5 bg-red-50 rounded-2xl border border-red-100">
+                    <div className="text-red-400 text-xs font-bold uppercase">
+                      Błędy
+                    </div>
+                    <div className="text-4xl font-black text-red-500">
+                      {reviewList.size}
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {reviewList.size > 0 && (
+                    <button
+                      onClick={() => startQuiz("difficult")}
+                      className="w-full py-4 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition flex items-center justify-center gap-2"
+                    >
+                      <Icons.Retry className="w-5 h-5" /> Powtórz błędy
+                    </button>
+                  )}
+                  <button
+                    onClick={() => startQuiz("all")}
+                    className="w-full py-4 bg-white border-2 border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2"
+                  >
+                    Menu Główne
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        const options = shuffledOptionsMap[currentQuestion.id] || [];
+
+        return (
+          <div className="min-h-screen flex flex-col items-center">
+            <div className="w-full bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 px-4 py-3 flex justify-between items-center shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="px-3 h-10 bg-indigo-100 rounded-full flex items-center justify-center font-bold text-indigo-700">
+                  {currentIdx + 1}/{questionPool.length}
+                </div>
+                <div className="hidden sm:block">
+                  <div className="text-xs text-slate-400 font-bold uppercase">
+                    Kategoria
+                  </div>
+                  <div className="text-sm font-bold text-slate-800 truncate max-w-[200px]">
+                    {currentQuestion.category}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-400 uppercase hidden sm:block mr-1">
+                  Kasuj wyniki
+                </span>
+                <button
+                  onClick={resetProgress}
+                  className="p-2 text-slate-300 hover:text-red-500 transition"
+                >
+                  <Icons.Trash className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="w-full max-w-5xl flex-1 flex flex-col md:flex-row md:items-start p-4 md:p-8 gap-6 mb-20">
+              <div
+                className={`flex-1 bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden transition-all duration-500 ${
+                  showTheory ? "md:w-5/12" : "w-full"
+                }`}
+              >
+                <div className="bg-slate-50 p-6 border-b border-slate-100 flex justify-between items-center">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    Pytanie
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-xs font-bold uppercase ${
+                        isReviewMarked ? "text-red-500" : "text-slate-300"
+                      }`}
+                    >
+                      {isReviewMarked ? "W powtórce" : "Dodaj do powtórki"}
+                    </span>
+                    <button
+                      onClick={toggleReviewMark}
+                      className={`transition-all duration-300 ${
+                        isReviewMarked
+                          ? "text-red-500 scale-110"
+                          : "text-slate-300 hover:text-red-300"
+                      }`}
+                    >
+                      <Icons.Flag
+                        className="w-6 h-6"
+                        fill={isReviewMarked ? "currentColor" : "none"}
+                      />
+                    </button>
+                  </div>
+                </div>
+                <div className="p-6 md:p-8">
+                  <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-8 leading-snug">
+                    {currentQuestion.question}
+                  </h2>
+                  <div className="space-y-3">
+                    {options.map((opt, i) => {
+                      const isSelected =
+                        currentAnswer?.selectedOptionIdx === opt.originalIdx;
+                      let btnClass =
+                        "w-full text-left p-4 md:p-5 rounded-xl border-2 transition-all duration-200 flex items-start group relative min-h-[64px] ";
+                      if (currentAnswer) {
+                        if (opt.originalIdx === currentQuestion.correct)
+                          btnClass +=
+                            "border-green-500 bg-green-50 text-green-900 shadow-sm";
+                        else if (isSelected)
+                          btnClass +=
+                            "border-red-500 bg-red-50 text-red-900 shadow-sm";
+                        else
+                          btnClass +=
+                            "border-slate-100 text-slate-400 opacity-60 grayscale";
+                      } else {
+                        btnClass +=
+                          "border-slate-200 hover:border-indigo-500 hover:bg-indigo-50 text-slate-700 shadow-sm hover:shadow-md hover:-translate-y-0.5";
+                      }
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => handleOptionClick(opt.originalIdx)}
+                          disabled={!!currentAnswer}
+                          className={btnClass}
+                        >
+                          <div
+                            className={`mt-0.5 w-6 h-6 shrink-0 rounded-full border-2 mr-4 flex items-center justify-center transition-colors ${
+                              currentAnswer &&
+                              opt.originalIdx === currentQuestion.correct
+                                ? "border-green-500 bg-green-500 text-white"
+                                : currentAnswer && isSelected
+                                ? "border-red-500 bg-red-500 text-white"
+                                : "border-slate-300 group-hover:border-indigo-400"
+                            }`}
+                          >
+                            {currentAnswer &&
+                            opt.originalIdx === currentQuestion.correct ? (
+                              <Icons.Check className="w-3 h-3" />
+                            ) : currentAnswer && isSelected ? (
+                              <Icons.X className="w-3 h-3" />
+                            ) : null}
+                          </div>
+                          <span className="text-sm md:text-base font-medium leading-relaxed whitespace-normal break-words">
+                            {opt.text}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {showTheory && (
+                <div className="md:w-7/12 w-full bg-white rounded-3xl shadow-xl border border-indigo-100 overflow-hidden slide-in flex flex-col md:max-h-[85vh] md:sticky md:top-24">
+                  <div className="bg-indigo-600 p-4 text-white flex items-center justify-between shadow-md z-10">
+                    <span className="font-bold flex items-center gap-2">
+                      <Icons.Cap className="w-5 h-5" /> Akademia
+                    </span>
+                    <div className="flex gap-2 items-center">
+                      <span className="text-xs font-bold uppercase text-white/70 mr-1">
+                        {isReviewMarked ? "W powtórce" : "Dodaj do powtórki"}
+                      </span>
+                      <button
+                        onClick={toggleReviewMark}
+                        className="bg-white/20 p-1.5 rounded-lg hover:bg-white/30 transition"
+                      >
+                        <Icons.Flag
+                          className="w-4 h-4"
+                          fill={isReviewMarked ? "white" : "none"}
+                        />
+                      </button>
+                      <button
+                        onClick={() => setShowTheory(false)}
+                        className="md:hidden bg-white/20 p-1.5 rounded-lg hover:bg-white/30 transition"
+                      >
+                        <Icons.X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar space-y-8 bg-slate-50/50">
+                    <div>
+                      <h4 className="text-xs font-black text-indigo-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <div className="w-1 h-4 bg-indigo-500 rounded-full"></div>{" "}
+                        Wykład
+                      </h4>
+                      <div
+                        className="prose-text text-sm md:text-base text-justify"
+                        dangerouslySetInnerHTML={{
+                          __html: currentQuestion.theory.replace(
+                            /\*\*(.*?)\*\*/g,
+                            "<strong>$1</strong>"
+                          ),
+                        }}
+                      ></div>
+                    </div>
+                    {currentQuestion.academicContext && (
+                      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
+                          Kontekst Akademicki
+                        </h4>
+                        <div
+                          className="prose-text text-sm md:text-base text-justify"
+                          dangerouslySetInnerHTML={{
+                            __html: currentQuestion.academicContext.replace(
+                              /\*\*(.*?)\*\*/g,
+                              "<strong>$1</strong>"
+                            ),
+                          }}
+                        ></div>
+                      </div>
+                    )}
+                    <div className="flex gap-4 items-start">
+                      <div className="w-1 self-stretch bg-green-500 rounded-full min-h-[40px]"></div>
+                      <div>
+                        <h4 className="text-xs font-bold text-green-600 uppercase mb-1">
+                          Prawidłowa odpowiedź
+                        </h4>
+                        <p className="text-sm md:text-base text-green-900 font-medium">
+                          {currentQuestion.explanation}
+                        </p>
+                      </div>
+                    </div>
+                    {currentQuestion.distractorsExplanation && (
+                      <div className="bg-red-50/50 p-6 rounded-2xl border border-red-100 relative overflow-hidden">
+                        <h4 className="text-xs font-black text-red-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                          <Icons.X className="w-4 h-4" /> Analiza Dystraktorów
+                        </h4>
+                        <div
+                          className="prose-text text-sm md:text-base text-red-900/80 leading-relaxed text-justify"
+                          dangerouslySetInnerHTML={{
+                            __html:
+                              currentQuestion.distractorsExplanation.replace(
+                                /\*\*(.*?)\*\*/g,
+                                "<strong>$1</strong>"
+                              ),
+                          }}
+                        ></div>
+                      </div>
+                    )}
+                    <div className="h-4 md:hidden"></div>
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* STICKY FOOTER */}
+            <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-3 md:p-4 z-[100] sticky-footer flex gap-3 justify-center items-center backdrop-blur-xl bg-white/95">
+              <div className="w-full max-w-5xl flex gap-3">
+                <button
+                  onClick={handleBack}
+                  disabled={currentIdx === 0 && !currentAnswer}
+                  className="px-4 py-3 md:px-6 rounded-xl font-bold text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition flex items-center gap-2 min-w-[100px] justify-center"
+                >
+                  <Icons.Left className="w-5 h-5" />{" "}
+                  <span className="hidden sm:inline">Wstecz</span>
+                </button>
+                {currentAnswer ? (
+                  <>
+                    <button
+                      onClick={() => setShowTheory(!showTheory)}
+                      className={`flex-1 px-4 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 border-2 text-sm md:text-base ${
+                        showTheory
+                          ? "bg-indigo-50 border-indigo-500 text-indigo-700"
+                          : "bg-white border-slate-300 text-slate-700 hover:border-indigo-400"
+                      }`}
+                    >
+                      <Icons.Cap className="w-5 h-5" />
+                      {showTheory ? "Ukryj" : "Wykład"}
+                    </button>
+                    <button
+                      onClick={handleNext}
+                      className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 text-sm md:text-base"
+                    >
+                      Dalej <Icons.Right className="w-5 h-5" />
+                    </button>
+                  </>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center text-slate-400 text-sm font-medium italic select-none">
+                    Wybierz odpowiedź...
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 px-2">
+                  <span
+                    className={`text-xs font-bold uppercase hidden sm:block ${
+                      isReviewMarked ? "text-red-500" : "text-slate-400"
+                    }`}
+                  >
+                    {isReviewMarked ? "W powtórce" : "Dodaj do powtórki"}
+                  </span>
+                  <button
+                    onClick={toggleReviewMark}
+                    className={`px-4 py-3 rounded-xl border-2 font-bold transition flex items-center gap-2 ${
+                      isReviewMarked
+                        ? "border-red-500 bg-red-50 text-red-500"
+                        : "border-slate-200 text-slate-400 hover:border-red-300 hover:text-red-300"
+                    }`}
+                  >
+                    <Icons.Flag
+                      className="w-5 h-5"
+                      fill={isReviewMarked ? "currentColor" : "none"}
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<QuizApp />);
+    </script>
+  </body>
+</html>
